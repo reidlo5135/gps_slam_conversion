@@ -50,10 +50,12 @@ namespace gps_slam_conversion
             rclcpp::Service<gps_slam_conversion_msgs::srv::Conversion>::SharedPtr converter_service_;
 
             void initial_position();
+            
             std_msgs::msg::Header build_header(const char *frame_id);
-            void converted_gps_publish(gps_slam_conversion::position::Point converted_gps_point);
+            sensor_msgs::msg::NavSatFix build_nav_sat_fix(gps_slam_conversion::position::Point converted_gps_point);
+            geometry_msgs::msg::Pose build_pose(gps_slam_conversion::position::Point converted_slam_point);
+
             void slam_pose_subscription_cb(geometry_msgs::msg::Pose::SharedPtr slam_pose_cb_data);
-            void converted_slam_publish(gps_slam_conversion::position::Point converted_slam_point);
             void gps_subscription_cb(sensor_msgs::msg::NavSatFix::SharedPtr gps_cb_data);
             void converter_service_cb(const gps_slam_conversion_msgs::srv::Conversion::Request::SharedPtr request, gps_slam_conversion_msgs::srv::Conversion::Response::SharedPtr response);
 

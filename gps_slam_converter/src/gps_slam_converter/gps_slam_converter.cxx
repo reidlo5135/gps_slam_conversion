@@ -114,7 +114,7 @@ std_msgs::msg::Header gps_slam_conversion::node::GpsSLAMConverter::build_header(
     return header_moved;
 }
 
-void gps_slam_conversion::node::GpsSLAMConverter::converted_gps_publish(gps_slam_conversion::position::Point converted_gps_point)
+sensor_msgs::msg::NavSatFix gps_slam_conversion::node::GpsSLAMConverter::build_nav_sat_fix(gps_slam_conversion::position::Point converted_gps_point)
 {
     const double &lon = converted_gps_point.get__x();
     const double &lat = converted_gps_point.get__y();
@@ -128,7 +128,7 @@ void gps_slam_conversion::node::GpsSLAMConverter::converted_gps_publish(gps_slam
     sensor_msgs::msg::NavSatStatus::UniquePtr nav_sat_status = std::make_unique<sensor_msgs::msg::NavSatStatus>();
     nav_sat_status->set__status(static_cast<int8_t>(RCL_DEFAULT_INT));
     nav_sat_status->set__service(static_cast<uint16_t>(RCL_DEFAULT_INT));
-    
+
     const sensor_msgs::msg::NavSatStatus &&nav_sat_status_moved = std::move(*nav_sat_status);
 
     sensor_msgs::msg::NavSatFix::UniquePtr nav_sat_fix = std::make_unique<sensor_msgs::msg::NavSatFix>();
@@ -139,7 +139,7 @@ void gps_slam_conversion::node::GpsSLAMConverter::converted_gps_publish(gps_slam
     nav_sat_fix->set__altitude(RCL_DEFAULT_DOUBLE);
 
     std::array<double, 9UL> position_covariance;
-    for (int i=0;i<position_covariance.size();i++)
+    for (int i = 0; i < position_covariance.size(); i++)
     {
         position_covariance[i] = RCL_DEFAULT_DOUBLE;
     }
@@ -149,22 +149,10 @@ void gps_slam_conversion::node::GpsSLAMConverter::converted_gps_publish(gps_slam
 
     const sensor_msgs::msg::NavSatFix &&nav_sat_fix_moved = std::move(*nav_sat_fix);
 
-    this->converted_gps_publisher_->publish(nav_sat_fix_moved);
+    return nav_sat_fix_moved;
 }
 
-void gps_slam_conversion::node::GpsSLAMConverter::slam_pose_subscription_cb(geometry_msgs::msg::Pose::SharedPtr slam_pose_cb_data)
-{
-    const double &pose_x = slam_pose_cb_data->position.x;
-    const double &pose_y = slam_pose_cb_data->position.y;
-
-    gps_slam_conversion::position::Point converted_gps_point = this->position_converter_->convert_slam_to_gps(
-        pose_x, pose_y, 
-        *lon_lat_LB_point_, *lon_lat_RT_point_);
-    
-    this->converted_gps_publish(converted_gps_point);
-}
-
-void gps_slam_conversion::node::GpsSLAMConverter::converted_slam_publish(gps_slam_conversion::position::Point converted_slam_point)
+geometry_msgs::msg::Pose gps_slam_conversion::node::GpsSLAMConverter::build_pose(gps_slam_conversion::position::Point converted_slam_point)
 {
     const double &slam_x = converted_slam_point.get__x();
     const double &slam_y = converted_slam_point.get__y();
@@ -193,7 +181,20 @@ void gps_slam_conversion::node::GpsSLAMConverter::converted_slam_publish(gps_sla
 
     const geometry_msgs::msg::Pose &&pose_moved = std::move(*pose);
 
-    this->converted_slam_publisher_->publish(pose_moved);
+    return pose_moved;
+}
+
+void gps_slam_conversion::node::GpsSLAMConverter::slam_pose_subscription_cb(geometry_msgs::msg::Pose::SharedPtr slam_pose_cb_data)
+{
+    const double &pose_x = slam_pose_cb_data->position.x;
+    const double &pose_y = slam_pose_cb_data->position.y;
+
+    gps_slam_conversion::position::Point converted_gps_point = this->position_converter_->convert_slam_to_gps(
+        pose_x, pose_y,
+        *lon_lat_LB_point_, *lon_lat_RT_point_);
+
+    sensor_msgs::msg::NavSatFix built_nav_sat_fix = this->build_nav_sat_fix(converted_gps_point);
+    this->converted_gps_publisher_->publish(built_nav_sat_fix);
 }
 
 void gps_slam_conversion::node::GpsSLAMConverter::gps_subscription_cb(sensor_msgs::msg::NavSatFix::SharedPtr gps_cb_data)
@@ -202,17 +203,21 @@ void gps_slam_conversion::node::GpsSLAMConverter::gps_subscription_cb(sensor_msg
     const double &current_latitude = gps_cb_data->latitude;
 
     gps_slam_conversion::position::Point converted_slam_point = this->position_converter_->convert_gps_to_slam(
-        current_longitude, current_latitude, 
+        current_longitude, current_latitude,
         *lon_lat_LB_point_, *lon_lat_RT_point_);
-    
-    this->converted_slam_publish(converted_slam_point);
+
+    geometry_msgs::msg::Pose built_pose = this->build_pose(converted_slam_point);
+    this->converted_slam_publisher_->publish(built_pose);
 }
 
 void gps_slam_conversion::node::GpsSLAMConverter::converter_service_cb(const gps_slam_conversion_msgs::srv::Conversion::Request::SharedPtr request, gps_slam_conversion_msgs::srv::Conversion::Response::SharedPtr response)
 {
     const std::string &request_conversion_target_data = request->conversion_target.data;
     std::vector<sensor_msgs::msg::NavSatFix> gps_request_list = request->gps_request_list;
+    const size_t gps_request_list_size = gps_request_list.size();
+
     std::vector<geometry_msgs::msg::Pose> slam_pose_request_list = request->slam_pose_request_list;
+    const size_t slam_pose_request_list_size = slam_pose_request_list.size();
 
     if (request_conversion_target_data == "")
     {
@@ -222,9 +227,123 @@ void gps_slam_conversion::node::GpsSLAMConverter::converter_service_cb(const gps
     }
     else if (request_conversion_target_data == RCL_CONVERTER_SERVICE_CONVERSION_TARGET_SLAM)
     {
+        bool is_gps_request_list_empty = gps_request_list.empty();
+        bool is_slam_request_list_not_empty = !slam_pose_request_list.empty();
+
+        if (is_gps_request_list_empty)
+        {
+            RCLCPP_ERROR(this->node_->get_logger(), "[%s] GPS conversion gps_request_list is empty", RCL_CONVERTER_SERVICE_SERVER_NAME);
+            RCLCPP_LINE_ERROR();
+            return;
+        }
+
+        if (is_slam_request_list_not_empty)
+        {
+            RCLCPP_ERROR(this->node_->get_logger(), "[%s] GPS conversion slam_pose_request_list is not empty. cleared", RCL_CONVERTER_SERVICE_SERVER_NAME);
+            RCLCPP_LINE_ERROR();
+            slam_pose_request_list.clear();
+        }
+
+        std::vector<geometry_msgs::msg::Pose> slam_pose_response_list;
+
+        for (const sensor_msgs::msg::NavSatFix &gps : gps_request_list)
+        {
+            const double &lon = gps.longitude;
+            const double &lat = gps.latitude;
+
+            gps_slam_conversion::position::Point converted_slam_point = this->position_converter_->convert_gps_to_slam(
+                lon, lat,
+                *lon_lat_LB_point_, *lon_lat_RT_point_);
+
+            geometry_msgs::msg::Pose built_pose = this->build_pose(converted_slam_point);
+
+            slam_pose_response_list.push_back(built_pose);
+        }
+
+        const size_t slam_pose_response_list_size = slam_pose_response_list.size();
+
+        bool is_converting_finished = (gps_request_list_size == slam_pose_response_list_size);
+
+        if (is_converting_finished)
+        {
+            std::for_each(slam_pose_response_list.begin(), slam_pose_response_list.end(), [this](const geometry_msgs::msg::Pose &pose) {
+                const double &response_pose_x = pose.position.x;
+                const double &response_pose_y = pose.position.y;
+
+                RCLCPP_INFO(
+                    this->node_->get_logger(),
+                    "[%s] slam_pose_reponse_list\n\tx : %f\n\ty :%f",
+                    RCL_CONVERTER_SERVICE_SERVER_NAME,
+                    response_pose_x, response_pose_y);
+                RCLCPP_LINE_INFO();
+            });
+
+            response->set__slam_pose_response_list(slam_pose_response_list);
+        }
+        else
+        {
+            return;
+        }
     }
     else if (request_conversion_target_data == RCL_CONVERTER_SERVICE_CONVERSION_TARGET_GPS)
     {
+        bool is_slam_request_list_empty = slam_pose_request_list.empty();
+        bool is_gps_request_list_not_empty = !gps_request_list.empty();
+        
+        if (is_slam_request_list_empty)
+        {
+            RCLCPP_ERROR(this->node_->get_logger(), "[%s] SLAM conversion slam_pose_request_list is empty", RCL_CONVERTER_SERVICE_SERVER_NAME);
+            RCLCPP_LINE_ERROR();
+            return;
+        }
+        
+        if (is_gps_request_list_not_empty)
+        {
+            RCLCPP_ERROR(this->node_->get_logger(), "[%s] SLAM conversion gps_request_list is not empty. cleared", RCL_CONVERTER_SERVICE_SERVER_NAME);
+            RCLCPP_LINE_ERROR();
+            gps_request_list.clear();
+        }
+
+        std::vector<sensor_msgs::msg::NavSatFix> gps_response_list;
+
+        for (const geometry_msgs::msg::Pose &pose : slam_pose_request_list)
+        {
+            const double &x = pose.position.x;
+            const double &y = pose.position.y;
+
+            gps_slam_conversion::position::Point converted_gps_point = this->position_converter_->convert_slam_to_gps(
+                x, y,
+                *lon_lat_LB_point_, *lon_lat_RT_point_);
+
+            sensor_msgs::msg::NavSatFix built_nav_sat_fix = this->build_nav_sat_fix(converted_gps_point);
+
+            gps_response_list.push_back(built_nav_sat_fix);
+        }
+
+        const size_t gps_response_list_size = gps_response_list.size();
+
+        bool is_converting_finished = (slam_pose_request_list_size == gps_response_list_size);
+
+        if (is_converting_finished)
+        {
+            std::for_each(gps_response_list.begin(), gps_response_list.end(), [this](const sensor_msgs::msg::NavSatFix &nav_sat_fix) {
+                const double &response_pose_lon = nav_sat_fix.longitude;
+                const double &response_pose_lat = nav_sat_fix.latitude;
+
+                RCLCPP_INFO(
+                    this->node_->get_logger(),
+                    "[%s] gps_reponse_list\n\tx : %f\n\ty :%f",
+                    RCL_CONVERTER_SERVICE_SERVER_NAME,
+                    response_pose_lon, response_pose_lat);
+                RCLCPP_LINE_INFO();
+            });
+            
+            response->set__gps_response_list(gps_response_list);
+        }
+        else
+        {
+            return;
+        }
     }
     else
     {
