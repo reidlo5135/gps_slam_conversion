@@ -1,7 +1,7 @@
 # gps_slam_conversion
 
 ## Document
-- [gps_slam_navigation - ROS2(foxy) GPS <-> SLAM coordinate conversion package](#gtsslamconversion)
+- [gps_slam_conversion - ROS2(foxy) GPS <-> SLAM coordinate conversion package](#gtsslamconversion)
     - [Document](#document)
     - [Environment](#1-environment)
     - [SetUp Installation](#2-setup-installation)
