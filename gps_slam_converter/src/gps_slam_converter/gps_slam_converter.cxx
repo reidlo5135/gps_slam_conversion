@@ -213,6 +213,8 @@ void gps_slam_conversion::node::GpsSLAMConverter::gps_subscription_cb(sensor_msg
 void gps_slam_conversion::node::GpsSLAMConverter::converter_service_cb(const gps_slam_conversion_msgs::srv::Conversion::Request::SharedPtr request, gps_slam_conversion_msgs::srv::Conversion::Response::SharedPtr response)
 {
     const std::string &request_conversion_target_data = request->conversion_target.data;
+    RCLCPP_INFO(this->node_->get_logger(), "[%s] conversion_target : %s", RCL_CONVERTER_SERVICE_SERVER_NAME, request_conversion_target_data.c_str());
+
     std::vector<sensor_msgs::msg::NavSatFix> gps_request_list = request->gps_request_list;
     const size_t gps_request_list_size = gps_request_list.size();
 
