@@ -3,6 +3,7 @@
 
 #include <cmath>
 #include <memory>
+#include "gps_slam_converter/utils.hxx"
 
 namespace gps_slam_conversion
 {
@@ -63,14 +64,14 @@ namespace gps_slam_conversion
             explicit PositionConverter();
             virtual ~PositionConverter();
 
-            double gps_slam_conversion::position::PositionConverter::get__mapping_max_width() const;
-            void gps_slam_conversion::position::PositionConverter::set__mapping_max_width(double mapping_max_width);
-            double gps_slam_conversion::position::PositionConverter::get__mapping_max_height() const;
-            void gps_slam_conversion::position::PositionConverter::set__mapping_max_height(double mapping_max_height);
-            double gps_slam_conversion::position::PositionConverter::get__slam_rotation_angle() const;
-            void gps_slam_conversion::position::PositionConverter::set__slam_rotation_angle(double slam_rotation_angle);
-            gps_slam_conversion::position::Point gps_slam_conversion::position::PositionConverter::get__area_offset() const;
-            void gps_slam_conversion::position::PositionConverter::set__area_offset(const gps_slam_conversion::position::Point &area_offset);
+            double get__mapping_max_width() const;
+            void set__mapping_max_width(double mapping_max_width);
+            double get__mapping_max_height() const;
+            void set__mapping_max_height(double mapping_max_height);
+            double get__slam_rotation_angle() const;
+            void set__slam_rotation_angle(double slam_rotation_angle);
+            gps_slam_conversion::position::Point get__area_offset() const;
+            void set__area_offset(const gps_slam_conversion::position::Point &area_offset);
 
             void init_area(
                 int slam_width,
@@ -90,7 +91,7 @@ namespace gps_slam_conversion
                 gps_slam_conversion::position::Point lon_lat_LB,
                 gps_slam_conversion::position::Point lon_lat_RT);
 
-            gps_slam_conversion::position::Point convert_slam_pos(int x, int y, WorkType type);
+            gps_slam_conversion::position::Point convert_slam_pos(int x, int y, gps_slam_conversion::position::WorkType type);
             double get_angle(double lon1, double lat1, double lon2, double lat2);
         };
     }
