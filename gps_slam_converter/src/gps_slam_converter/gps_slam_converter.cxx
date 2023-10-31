@@ -12,14 +12,14 @@ gps_slam_conversion::node::GpsSLAMConverter::GpsSLAMConverter()
 
     if (this->node_ != nullptr)
     {
-        RCLCPP_INFO(this->node_->get_logger(), "%s node created", RCL_NODE_NAME);
+        RCLCPP_INFO(this->node_->get_logger(), "[%s] node has been created", RCL_NODE_NAME);
         RCLCPP_LINE_INFO();
     }
     else
     {
         RCUTILS_LOG_ERROR_NAMED(RCL_NODE_NAME, "failed to create %s node", RCL_NODE_NAME);
         RCLCPP_LINE_ERROR();
-        exit(0);
+        exit(RCL_STOP_FLAG);
     }
 
     this->slam_pose_subscription_cb_group_ = this->node_->create_callback_group(rclcpp::CallbackGroupType::MutuallyExclusive);
@@ -213,6 +213,8 @@ void gps_slam_conversion::node::GpsSLAMConverter::gps_subscription_cb(sensor_msg
 void gps_slam_conversion::node::GpsSLAMConverter::converter_service_cb(const gps_slam_conversion_msgs::srv::Conversion::Request::SharedPtr request, gps_slam_conversion_msgs::srv::Conversion::Response::SharedPtr response)
 {
     const std::string &request_conversion_target_data = request->conversion_target.data;
+    RCLCPP_INFO(this->node_->get_logger(), "[%s] conversion_target : %s", RCL_CONVERTER_SERVICE_SERVER_NAME, request_conversion_target_data.c_str());
+
     std::vector<sensor_msgs::msg::NavSatFix> gps_request_list = request->gps_request_list;
     const size_t gps_request_list_size = gps_request_list.size();
 
