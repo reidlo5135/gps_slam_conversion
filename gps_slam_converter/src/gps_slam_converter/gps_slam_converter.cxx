@@ -12,14 +12,14 @@ gps_slam_conversion::node::GpsSLAMConverter::GpsSLAMConverter()
 
     if (this->node_ != nullptr)
     {
-        RCLCPP_INFO(this->node_->get_logger(), "%s node created", RCL_NODE_NAME);
+        RCLCPP_INFO(this->node_->get_logger(), "[%s] node has been created", RCL_NODE_NAME);
         RCLCPP_LINE_INFO();
     }
     else
     {
         RCUTILS_LOG_ERROR_NAMED(RCL_NODE_NAME, "failed to create %s node", RCL_NODE_NAME);
         RCLCPP_LINE_ERROR();
-        exit(0);
+        exit(RCL_STOP_FLAG);
     }
 
     this->slam_pose_subscription_cb_group_ = this->node_->create_callback_group(rclcpp::CallbackGroupType::MutuallyExclusive);
