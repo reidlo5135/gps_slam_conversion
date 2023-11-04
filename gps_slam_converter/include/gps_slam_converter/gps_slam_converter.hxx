@@ -49,6 +49,7 @@ namespace gps_slam_conversion
 
             rclcpp::Service<gps_slam_conversion_msgs::srv::Conversion>::SharedPtr converter_service_;
 
+            void declare_parameters_by_list();
             void initial_position();
             
             std_msgs::msg::Header build_header(const char *frame_id);

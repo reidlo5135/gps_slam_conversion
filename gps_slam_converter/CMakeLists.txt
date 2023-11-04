@@ -48,7 +48,7 @@ set(dependencies
   PROJ
 )
 
-set(executable_name converter)
+set(executable_name gps_slam_converter)
 
 add_executable(${executable_name}
   ${source_sets}

@@ -2,10 +2,13 @@
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
   <name>gps_slam_conversion</name>
-  <version>0.0.0</version>
-  <description>TODO: Package description</description>
-  <maintainer email="201840103@email.daelim.ac.kr">reidlo</maintainer>
-  <license>TODO: License declaration</license>
+  <version>0.1.0</version>
+  <description>ROS2(foxy) GPS / SLAM conversion package</description>
+  <maintainer email="naru5135@wavem.net">reidlo</maintainer>
+  <license>Apache 2.0</license>
+
+  <exec_depend>gps_slam_conversion_msgs</exec_depend>
+  <exec_depend>gps_slam_converter</exec_depend>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
 

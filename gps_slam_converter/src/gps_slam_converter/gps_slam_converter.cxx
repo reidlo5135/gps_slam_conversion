@@ -22,6 +22,8 @@ gps_slam_conversion::node::GpsSLAMConverter::GpsSLAMConverter()
         exit(RCL_STOP_FLAG);
     }
 
+    this->declare_parameters_by_list();
+
     this->slam_pose_subscription_cb_group_ = this->node_->create_callback_group(rclcpp::CallbackGroupType::MutuallyExclusive);
     rclcpp::SubscriptionOptions slam_pose_subscription_opts;
     slam_pose_subscription_opts.callback_group = this->slam_pose_subscription_cb_group_;
@@ -72,23 +74,60 @@ void gps_slam_conversion::node::GpsSLAMConverter::signal_handler(int signal_inpu
     exit(RCL_STOP_FLAG);
 }
 
+void gps_slam_conversion::node::GpsSLAMConverter::declare_parameters_by_list()
+{
+    std::map<const char *, int> slam_map;
+    slam_map[RCL_SLAM_MAP_WIDTH_PARAMETER] = SLAM_MAP_WIDTH;
+    slam_map[RCL_SLAM_MAP_HEIGHT_PARAMETER] = SLAM_MAP_HEIGHT;
+
+    for (const std::pair<const char *const, int> &slam_map_pair : slam_map)
+    {
+        const char *key = slam_map_pair.first;
+        const int &value = slam_map_pair.second;
+        this->node_->declare_parameter(key, value);
+
+        RCLCPP_INFO(this->node_->get_logger(), "SLAM Map [%s] parameter declared with default [%d]", key, value);
+        RCLCPP_LINE_INFO();
+    }
+
+    std::map<const char *, double> gps_map;
+    gps_map[RCL_INTERSECTION_START_POINT_LON_PARAMTER] = INTERSECTION_START_POINT_LON_DEFAULT;
+    gps_map[RCL_INTERSECTION_START_POINT_LAT_PARAMTER] = INTERSECTION_START_POINT_LAT_DEFAULT;
+    gps_map[RCL_INTERSECTION_END_POINT_LON_PARAMTER] = INTERSECTION_END_POINT_LON_DEFAULT;
+    gps_map[RCL_INTERSECTION_END_POINT_LAT_PARAMTER] = INTERSECTION_END_POINT_LAT_DEFAULT;
+    gps_map[RCL_LB_POINT_LON_PARAMETER] = LB_POINT_LON_DEFAULT;
+    gps_map[RCL_LB_POINT_LON_PARAMETER] = LB_POINT_LAT_DEFAULT;
+    gps_map[RCL_RT_POINT_LON_PARAMETER] = RT_POINT_LON_DEFAULT;
+    gps_map[RCL_RT_POINT_LON_PARAMETER] = RT_POINT_LAT_DEFAULT;
+
+    for (const std::pair<const char * const, double> &gps_map_pair : gps_map)
+    {
+        const char *key = gps_map_pair.first;
+        const double &value = gps_map_pair.second;
+        this->node_->declare_parameter(key, value);
+
+        RCLCPP_INFO(this->node_->get_logger(), "GPS Map [%s] parameter declared with default [%f]", key, value);
+        RCLCPP_LINE_INFO();
+    }
+}
+
 void gps_slam_conversion::node::GpsSLAMConverter::initial_position()
 {
     std::shared_ptr<gps_slam_conversion::position::Point> intersection_start_point = std::make_shared<gps_slam_conversion::position::Point>();
-    intersection_start_point->set__x(INTERSECTION_START_POINT_LON);
-    intersection_start_point->set__y(INTERSECTION_START_POINT_LAT);
+    intersection_start_point->set__x(INTERSECTION_START_POINT_LON_DEFAULT);
+    intersection_start_point->set__y(INTERSECTION_START_POINT_LAT_DEFAULT);
 
     std::shared_ptr<gps_slam_conversion::position::Point> intersection_end_point = std::make_shared<gps_slam_conversion::position::Point>();
-    intersection_end_point->set__x(INTERSECTION_END_POINT_LON);
-    intersection_end_point->set__y(INTERSECTION_END_POINT_LAT);
+    intersection_end_point->set__x(INTERSECTION_END_POINT_LON_DEFAULT);
+    intersection_end_point->set__y(INTERSECTION_END_POINT_LAT_DEFAULT);
 
     this->position_converter_->init_area(SLAM_MAP_WIDTH, SLAM_MAP_HEIGHT, *intersection_start_point, *intersection_end_point);
 
-    this->lon_lat_LB_point_->set__x(LB_POINT_LON);
-    this->lon_lat_LB_point_->set__y(LB_POINT_LAT);
+    this->lon_lat_LB_point_->set__x(LB_POINT_LON_DEFAULT);
+    this->lon_lat_LB_point_->set__y(LB_POINT_LAT_DEFAULT);
 
-    this->lon_lat_RT_point_->set__x(RT_POINT_LON);
-    this->lon_lat_RT_point_->set__y(RT_POINT_LAT);
+    this->lon_lat_RT_point_->set__x(RT_POINT_LON_DEFAULT);
+    this->lon_lat_RT_point_->set__y(RT_POINT_LAT_DEFAULT);
 }
 
 std_msgs::msg::Header gps_slam_conversion::node::GpsSLAMConverter::build_header(const char *frame_id)
