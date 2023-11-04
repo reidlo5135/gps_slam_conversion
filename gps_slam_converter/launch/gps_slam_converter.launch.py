@@ -15,12 +15,14 @@ def generate_launch_description() -> LaunchDescription:
         'map_coordinates.yaml'
     )
     
-    converter_node = Node(
-        package=package_name,
-        executable=package_name,
-        name=package_name,
-        output='screen',
-        parameters=[map_coordinates_parameter]
+    converter_node: Node = Node(
+        package = package_name,
+        executable = package_name,
+        name = package_name,
+        output = 'screen',
+        parameters = [
+            map_coordinates_parameter
+        ]
     )
     
     ld.add_action(converter_node)
