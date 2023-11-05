@@ -6,7 +6,6 @@ gps_slam_conversion::node::GpsSLAMConverter::GpsSLAMConverter()
     this->position_converter_ = std::make_shared<gps_slam_conversion::position::PositionConverter>();
     this->lon_lat_LB_point_ = std::make_shared<gps_slam_conversion::position::Point>();
     this->lon_lat_RT_point_ = std::make_shared<gps_slam_conversion::position::Point>();
-    this->initial_position();
 
     this->node_ = std::shared_ptr<rclcpp::Node>(this, [](rclcpp::Node *) {});
 
@@ -23,6 +22,7 @@ gps_slam_conversion::node::GpsSLAMConverter::GpsSLAMConverter()
     }
 
     this->declare_parameters_by_list();
+    this->initial_position();
 
     this->slam_pose_subscription_cb_group_ = this->node_->create_callback_group(rclcpp::CallbackGroupType::MutuallyExclusive);
     rclcpp::SubscriptionOptions slam_pose_subscription_opts;

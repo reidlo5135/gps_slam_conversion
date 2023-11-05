@@ -44,7 +44,7 @@ set(dependencies
   builtin_interfaces
 )
 
-set(executable_name gps_slam_converter)
+set(executable_name converter)
 
 add_executable(${executable_name}
   ${source_sets}
