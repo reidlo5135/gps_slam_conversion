@@ -27,9 +27,6 @@ find_package(sensor_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(gps_slam_conversion_msgs REQUIRED)
 find_package(builtin_interfaces REQUIRED)
-find_package(PROJ REQUIRED CONFIG)
-
-add_definitions(-DACCEPT_USE_OF_DEPRECATED_PROJ_API_H)
 
 set(source_sets
   include/gps_slam_converter/utils.hxx
@@ -45,10 +42,9 @@ set(dependencies
   geometry_msgs
   gps_slam_conversion_msgs
   builtin_interfaces
-  PROJ
 )
 
-set(executable_name gps_slam_converter)
+set(executable_name converter)
 
 add_executable(${executable_name}
   ${source_sets}
