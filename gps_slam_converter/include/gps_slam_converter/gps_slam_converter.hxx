@@ -32,6 +32,8 @@ namespace gps_slam_conversion
 
             rclcpp::Node::SharedPtr node_;
 
+            std::map<const char *, int> virtual_map_info_parameter_map_;
+            std::map<const char *, double> virtual_map_point_parameter_map_;
             std::map<const char *, int> slam_parameter_map_;
             std::map<const char *, double> gps_parameter_map_;
 
@@ -53,7 +55,8 @@ namespace gps_slam_conversion
             rclcpp::Service<gps_slam_conversion_msgs::srv::Conversion>::SharedPtr converter_service_;
 
             void declare_parameters_by_list();
-            void initial_position();
+            void initialize_virtual_map_position();
+            void initialize_position();
 
             std_msgs::msg::Header build_header(const char *frame_id);
             sensor_msgs::msg::NavSatFix build_nav_sat_fix(gps_slam_conversion::position::Point converted_gps_point);
