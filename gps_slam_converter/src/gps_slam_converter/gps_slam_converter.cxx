@@ -22,8 +22,18 @@ gps_slam_conversion::node::GpsSLAMConverter::GpsSLAMConverter()
     }
 
     this->declare_parameters_by_list();
-    this->initial_position();
 
+    const bool &is_virtual_map = this->node_->get_parameter(RCL_IS_VIRTUAL_MAP_PARAMETER).as_bool();
+
+    if (is_virtual_map)
+    {
+        this->initialize_virtual_map_position();
+    }
+    else
+    {
+        this->initialize_position();
+    }
+    
     this->slam_pose_subscription_cb_group_ = this->node_->create_callback_group(rclcpp::CallbackGroupType::MutuallyExclusive);
     rclcpp::SubscriptionOptions slam_pose_subscription_opts;
     slam_pose_subscription_opts.callback_group = this->slam_pose_subscription_cb_group_;
@@ -76,10 +86,45 @@ void gps_slam_conversion::node::GpsSLAMConverter::signal_handler(int signal_inpu
 
 void gps_slam_conversion::node::GpsSLAMConverter::declare_parameters_by_list()
 {
-    slam_parameter_map_[RCL_SLAM_MAP_WIDTH_PARAMETER] = SLAM_MAP_WIDTH;
-    slam_parameter_map_[RCL_SLAM_MAP_HEIGHT_PARAMETER] = SLAM_MAP_HEIGHT;
+    this->node_->declare_parameter<bool>(RCL_IS_VIRTUAL_MAP_PARAMETER, false);
 
-    for (const std::pair<const char *const, int> &slam_map_pair : slam_parameter_map_)
+    virtual_map_info_parameter_map_[RCL_VIRTUAL_MAP_X_PARAMETER] = RCL_DEFAULT_INT;
+    virtual_map_info_parameter_map_[RCL_VIRTUAL_MAP_Y_PARAMETER] = RCL_DEFAULT_INT;
+    virtual_map_info_parameter_map_[RCL_VIRTUAL_MAP_WIDTH_PARAMETER] = RCL_DEFAULT_INT;
+    virtual_map_info_parameter_map_[RCL_VIRTUAL_MAP_HEIGHT_PARAMETER] = RCL_DEFAULT_INT;
+
+    for (const std::pair<const char *const, int> &virtual_map_info_pair : this->virtual_map_info_parameter_map_)
+    {
+        const char *key = virtual_map_info_pair.first;
+        const int &value = virtual_map_info_pair.second;
+        this->node_->declare_parameter<int>(key, value);
+
+        RCLCPP_INFO(this->node_->get_logger(), "Virtual Map Info [%s] parameter declared with default [%d]", key, value);
+        RCLCPP_LINE_INFO();
+    }
+
+    virtual_map_point_parameter_map_[RCL_VIRTUAL_MAP_DISTANCE_PER_PIXEL] = RCL_DEFAULT_DOUBLE;
+    virtual_map_point_parameter_map_[RCL_VIRTUAL_MAP_POINT_LON_PARAMETER] = RCL_DEFAULT_DOUBLE;
+    virtual_map_point_parameter_map_[RCL_VIRTUAL_MAP_POINT_LAT_PARAMETER] = RCL_DEFAULT_DOUBLE;
+    virtual_map_point_parameter_map_[RCL_VIRTUAL_MAP_LB_POINT_LON_PARAMETER] = RCL_DEFAULT_DOUBLE;
+    virtual_map_point_parameter_map_[RCL_VIRTUAL_MAP_LB_POINT_LAT_PARAMETER] = RCL_DEFAULT_DOUBLE;
+    virtual_map_point_parameter_map_[RCL_VIRTUAL_MAP_RT_POINT_LON_PARAMETER] = RCL_DEFAULT_DOUBLE;
+    virtual_map_point_parameter_map_[RCL_VIRTUAL_MAP_RT_POINT_LAT_PARAMETER] = RCL_DEFAULT_DOUBLE;
+
+    for (const std::pair<const char *const, double> &virtual_map_point_pair : this->virtual_map_point_parameter_map_)
+    {
+        const char *key = virtual_map_point_pair.first;
+        const int &value = virtual_map_point_pair.second;
+        this->node_->declare_parameter<double>(key, value);
+
+        RCLCPP_INFO(this->node_->get_logger(), "Virtual Map Point [%s] parameter declared with default [%d]", key, value);
+        RCLCPP_LINE_INFO();
+    }
+
+    slam_parameter_map_[RCL_SLAM_MAP_WIDTH_PARAMETER] = RCL_DEFAULT_INT;
+    slam_parameter_map_[RCL_SLAM_MAP_HEIGHT_PARAMETER] = RCL_DEFAULT_INT;
+
+    for (const std::pair<const char *const, int> &slam_map_pair : this->slam_parameter_map_)
     {
         const char *key = slam_map_pair.first;
         const int &value = slam_map_pair.second;
@@ -89,16 +134,16 @@ void gps_slam_conversion::node::GpsSLAMConverter::declare_parameters_by_list()
         RCLCPP_LINE_INFO();
     }
 
-    gps_parameter_map_[RCL_INTERSECTION_START_POINT_LON_PARAMTER] = INTERSECTION_START_POINT_LON_DEFAULT;
-    gps_parameter_map_[RCL_INTERSECTION_START_POINT_LAT_PARAMTER] = INTERSECTION_START_POINT_LAT_DEFAULT;
-    gps_parameter_map_[RCL_INTERSECTION_END_POINT_LON_PARAMTER] = INTERSECTION_END_POINT_LON_DEFAULT;
-    gps_parameter_map_[RCL_INTERSECTION_END_POINT_LAT_PARAMTER] = INTERSECTION_END_POINT_LAT_DEFAULT;
-    gps_parameter_map_[RCL_LB_POINT_LON_PARAMETER] = LB_POINT_LON_DEFAULT;
-    gps_parameter_map_[RCL_LB_POINT_LON_PARAMETER] = LB_POINT_LAT_DEFAULT;
-    gps_parameter_map_[RCL_RT_POINT_LON_PARAMETER] = RT_POINT_LON_DEFAULT;
-    gps_parameter_map_[RCL_RT_POINT_LON_PARAMETER] = RT_POINT_LAT_DEFAULT;
+    gps_parameter_map_[RCL_INTERSECTION_START_POINT_LON_PARAMTER] = RCL_DEFAULT_DOUBLE;
+    gps_parameter_map_[RCL_INTERSECTION_START_POINT_LAT_PARAMTER] = RCL_DEFAULT_DOUBLE;
+    gps_parameter_map_[RCL_INTERSECTION_END_POINT_LON_PARAMTER] = RCL_DEFAULT_DOUBLE;
+    gps_parameter_map_[RCL_INTERSECTION_END_POINT_LAT_PARAMTER] = RCL_DEFAULT_DOUBLE;
+    gps_parameter_map_[RCL_LB_POINT_LON_PARAMETER] = RCL_DEFAULT_DOUBLE;
+    gps_parameter_map_[RCL_LB_POINT_LAT_PARAMETER] = RCL_DEFAULT_DOUBLE;
+    gps_parameter_map_[RCL_RT_POINT_LON_PARAMETER] = RCL_DEFAULT_DOUBLE;
+    gps_parameter_map_[RCL_RT_POINT_LAT_PARAMETER] = RCL_DEFAULT_DOUBLE;
 
-    for (const std::pair<const char * const, double> &gps_map_pair : gps_parameter_map_)
+    for (const std::pair<const char * const, double> &gps_map_pair : this->gps_parameter_map_)
     {
         const char *key = gps_map_pair.first;
         const double &value = gps_map_pair.second;
@@ -109,34 +154,222 @@ void gps_slam_conversion::node::GpsSLAMConverter::declare_parameters_by_list()
     }
 }
 
-void gps_slam_conversion::node::GpsSLAMConverter::initial_position()
+void gps_slam_conversion::node::GpsSLAMConverter::initialize_virtual_map_position()
+{
+    const int &virtual_map_x = this->node_->get_parameter(RCL_VIRTUAL_MAP_X_PARAMETER).as_int();
+    const int &virtual_map_y = this->node_->get_parameter(RCL_VIRTUAL_MAP_Y_PARAMETER).as_int();
+    const int &virtual_map_width = this->node_->get_parameter(RCL_VIRTUAL_MAP_WIDTH_PARAMETER).as_int();
+    const int &virtual_map_height = this->node_->get_parameter(RCL_VIRTUAL_MAP_HEIGHT_PARAMETER).as_int();
+    const double &virtual_map_distance_per_pixel = this->node_->get_parameter(RCL_VIRTUAL_MAP_DISTANCE_PER_PIXEL).as_double();
+
+    const double &virtual_map_point_width = this->node_->get_parameter(RCL_VIRTUAL_MAP_POINT_LON_PARAMETER).as_double();
+    const double &virtual_map_point_height = this->node_->get_parameter(RCL_VIRTUAL_MAP_POINT_LAT_PARAMETER).as_double();
+
+    std::unique_ptr<gps_slam_conversion::position::Point> map_point = std::make_unique<gps_slam_conversion::position::Point>();
+    map_point->set__x(virtual_map_point_width);
+    map_point->set__y(virtual_map_point_height);
+
+    gps_slam_conversion::position::Point &&map_point_moved = std::move(*map_point);
+
+    RCLCPP_INFO(
+        this->node_->get_logger(),
+        "initialize_virtual_map_position Virtual map info\n\tx : [%d]\n\ty : [%d]\n\twidth : [%d]\n\theight : [%d]\n\tdistance_per_pixel : [%f]",
+        virtual_map_x,
+        virtual_map_y,
+        virtual_map_width,
+        virtual_map_height,
+        virtual_map_distance_per_pixel
+    );
+    RCLCPP_LINE_INFO();
+
+    const double &virtual_map_point_lb_point_lon = this->node_->get_parameter(RCL_VIRTUAL_MAP_LB_POINT_LON_PARAMETER).as_double();
+    const double &virtual_map_point_lb_point_lat = this->node_->get_parameter(RCL_VIRTUAL_MAP_LB_POINT_LAT_PARAMETER).as_double();
+
+    std::unique_ptr<gps_slam_conversion::position::Point> lon_lat_lb_point = std::make_unique<gps_slam_conversion::position::Point>();
+    lon_lat_lb_point->set__x(virtual_map_point_lb_point_lon);
+    lon_lat_lb_point->set__y(virtual_map_point_lb_point_lat);
+
+    gps_slam_conversion::position::Point &&lon_lat_lb_point_moved = std::move(*lon_lat_lb_point);
+
+    RCLCPP_INFO(
+        this->node_->get_logger(),
+        "initialize_virtual_map_position lon_lat_lb_point\n\tx : [%f]\n\ty : [%f]",
+        lon_lat_lb_point->get__x(),
+        lon_lat_lb_point->get__y()
+    );
+    RCLCPP_LINE_INFO();
+
+    const double &virtual_map_point_rt_point_lon = this->node_->get_parameter(RCL_VIRTUAL_MAP_RT_POINT_LON_PARAMETER).as_double();
+    const double &virtual_map_point_rt_point_lat = this->node_->get_parameter(RCL_VIRTUAL_MAP_RT_POINT_LAT_PARAMETER).as_double();
+
+    std::unique_ptr<gps_slam_conversion::position::Point> lon_lat_rt_point = std::make_unique<gps_slam_conversion::position::Point>();
+
+    lon_lat_rt_point->set__x(virtual_map_point_rt_point_lon);
+    lon_lat_rt_point->set__y(virtual_map_point_rt_point_lat);
+
+    gps_slam_conversion::position::Point &&lon_lat_rt_point_moved = std::move(*lon_lat_rt_point);
+
+    RCLCPP_INFO(
+        this->node_->get_logger(),
+        "initialize_virtual_map_position lon_lat_rt_point\n\tx : [%f]\n\ty : [%f]",
+        lon_lat_rt_point->get__x(),
+        lon_lat_rt_point->get__y()
+    );
+    RCLCPP_LINE_INFO();
+
+    std::vector<gps_slam_conversion::position::Point> point_vec = this->position_converter_->convert_slam_to_virtual_map_area(
+        virtual_map_x, virtual_map_y,
+        virtual_map_width, virtual_map_height,
+        virtual_map_distance_per_pixel,
+        map_point_moved,
+        lon_lat_lb_point_moved, lon_lat_rt_point_moved
+    );
+
+    const int &slam_map_width = this->node_->get_parameter(RCL_SLAM_MAP_WIDTH_PARAMETER).as_int();
+    const int &slam_map_height = this->node_->get_parameter(RCL_SLAM_MAP_HEIGHT_PARAMETER).as_int();
+
+    RCLCPP_INFO(
+        this->node_->get_logger(),
+        "initialize_virtual_map_position SLAM map info\n\twidth : [%d]\n\theight : [%d]",
+        slam_map_width,
+        slam_map_height
+    );
+    RCLCPP_LINE_INFO();
+
+    const double &intersection_start_point_x = this->node_->get_parameter(RCL_INTERSECTION_START_POINT_LON_PARAMTER).as_double();
+    const double &intersection_start_point_y = this->node_->get_parameter(RCL_INTERSECTION_START_POINT_LAT_PARAMTER).as_double();
+
+    std::shared_ptr<gps_slam_conversion::position::Point> intersection_start_point = std::make_shared<gps_slam_conversion::position::Point>();
+    intersection_start_point->set__x(intersection_start_point_x);
+    intersection_start_point->set__y(intersection_start_point_y);
+
+    RCLCPP_INFO(
+        this->node_->get_logger(),
+        "initialize_virtual_map_position intersection_start_point\n\tx : [%f]\n\ty : [%f]",
+        intersection_start_point->get__x(),
+        intersection_start_point->get__y()
+    );
+    RCLCPP_LINE_INFO();
+
+    const double &intersection_end_point_x = this->node_->get_parameter(RCL_INTERSECTION_END_POINT_LON_PARAMTER).as_double();
+    const double &intersection_end_point_y = this->node_->get_parameter(RCL_INTERSECTION_END_POINT_LAT_PARAMTER).as_double();
+
+    std::shared_ptr<gps_slam_conversion::position::Point> intersection_end_point = std::make_shared<gps_slam_conversion::position::Point>();
+
+    intersection_end_point->set__x(intersection_end_point_x);
+    intersection_end_point->set__y(intersection_end_point_y);
+
+    RCLCPP_INFO(
+        this->node_->get_logger(),
+        "initialize_virtual_map_position intersection_end_point\n\tx : [%f]\n\ty : [%f]",
+        intersection_end_point->get__x(),
+        intersection_end_point->get__y()
+    );
+    RCLCPP_LINE_INFO();
+
+    this->position_converter_->init_area(slam_map_width, slam_map_height, *intersection_start_point, *intersection_end_point);
+
+    const double &lon_lat_lb_point_x = point_vec[0].get__x();
+    const double &lon_lat_lb_point_y = point_vec[0].get__y();
+
+    RCLCPP_INFO(
+        this->node_->get_logger(),
+        "initialize_virtual_map_position lon_lat_lb_point\n\tx : [%f]\n\ty : [%f]",
+        lon_lat_lb_point_x,
+        lon_lat_lb_point_y
+    );
+    RCLCPP_LINE_INFO();
+
+    this->lon_lat_LB_point_->set__x(lon_lat_lb_point_x);
+    this->lon_lat_LB_point_->set__y(lon_lat_lb_point_y);
+
+    const double &lon_lat_rt_point_x = point_vec[1].get__x();
+    const double &lon_lat_rt_point_y = point_vec[1].get__y();
+
+    RCLCPP_INFO(
+        this->node_->get_logger(),
+        "initialize_virtual_map_position lon_lat_rt_point\n\tx : [%f]\n\ty : [%f]",
+        lon_lat_rt_point_x,
+        lon_lat_rt_point_y
+    );
+    RCLCPP_LINE_INFO();
+
+    this->lon_lat_RT_point_->set__x(lon_lat_rt_point_x);
+    this->lon_lat_RT_point_->set__y(lon_lat_rt_point_y);
+}
+
+void gps_slam_conversion::node::GpsSLAMConverter::initialize_position()
 {
     const int &slam_map_width = this->node_->get_parameter(RCL_SLAM_MAP_WIDTH_PARAMETER).as_int();
     const int &slam_map_height = this->node_->get_parameter(RCL_SLAM_MAP_HEIGHT_PARAMETER).as_int();
 
     RCLCPP_INFO(
         this->node_->get_logger(),
-        "initial_position SLAM map info\n\twidth : [%d]\n\theight : [%d]",
+        "initialize_position SLAM map info\n\twidth : [%d]\n\theight : [%d]",
         slam_map_width,
         slam_map_height
     );
     RCLCPP_LINE_INFO();
 
+    const double &intersection_start_point_x = this->node_->get_parameter(RCL_INTERSECTION_START_POINT_LON_PARAMTER).as_double();
+    const double &intersection_start_point_y = this->node_->get_parameter(RCL_INTERSECTION_START_POINT_LAT_PARAMTER).as_double();
+
     std::shared_ptr<gps_slam_conversion::position::Point> intersection_start_point = std::make_shared<gps_slam_conversion::position::Point>();
-    intersection_start_point->set__x(INTERSECTION_START_POINT_LON_DEFAULT);
-    intersection_start_point->set__y(INTERSECTION_START_POINT_LAT_DEFAULT);
+    intersection_start_point->set__x(intersection_start_point_x);
+    intersection_start_point->set__y(intersection_start_point_y);
+
+    RCLCPP_INFO(
+        this->node_->get_logger(),
+        "initialize_position intersection_start_point\n\tx : [%f]\n\ty : [%f]",
+        intersection_start_point->get__x(),
+        intersection_start_point->get__y()
+    );
+    RCLCPP_LINE_INFO();
+
+    const double &intersection_end_point_x = this->node_->get_parameter(RCL_INTERSECTION_END_POINT_LON_PARAMTER).as_double();
+    const double &intersection_end_point_y = this->node_->get_parameter(RCL_INTERSECTION_END_POINT_LAT_PARAMTER).as_double();
 
     std::shared_ptr<gps_slam_conversion::position::Point> intersection_end_point = std::make_shared<gps_slam_conversion::position::Point>();
-    intersection_end_point->set__x(INTERSECTION_END_POINT_LON_DEFAULT);
-    intersection_end_point->set__y(INTERSECTION_END_POINT_LAT_DEFAULT);
+    intersection_end_point->set__x(intersection_end_point_x);
+    intersection_end_point->set__y(intersection_end_point_y);
+
+    RCLCPP_INFO(
+        this->node_->get_logger(),
+        "initialize_position intersection_end_point\n\tx : [%f]\n\ty : [%f]",
+        intersection_end_point->get__x(),
+        intersection_end_point->get__y()
+    );
+    RCLCPP_LINE_INFO();
 
     this->position_converter_->init_area(slam_map_width, slam_map_height, *intersection_start_point, *intersection_end_point);
+
+    const double &lon_lat_LB_point_x = this->node_->get_parameter(RCL_LB_POINT_LON_PARAMETER).as_double();
+    const double &lon_lat_LB_point_y = this->node_->get_parameter(RCL_LB_POINT_LAT_PARAMETER).as_double();
 
     this->lon_lat_LB_point_->set__x(LB_POINT_LON_DEFAULT);
     this->lon_lat_LB_point_->set__y(LB_POINT_LAT_DEFAULT);
 
-    this->lon_lat_RT_point_->set__x(RT_POINT_LON_DEFAULT);
-    this->lon_lat_RT_point_->set__y(RT_POINT_LAT_DEFAULT);
+    RCLCPP_INFO(
+        this->node_->get_logger(),
+        "initialize_position lon_lat_LB_point_\n\tx : [%f]\n\ty : [%f]",
+        lon_lat_LB_point_->get__x(),
+        lon_lat_LB_point_->get__y()
+    );
+    RCLCPP_LINE_INFO();
+
+    const double &lon_lat_RT_point_x = this->node_->get_parameter(RCL_RT_POINT_LON_PARAMETER).as_double();
+    const double &lon_lat_RT_point_y = this->node_->get_parameter(RCL_RT_POINT_LAT_PARAMETER).as_double();
+
+    this->lon_lat_RT_point_->set__x(lon_lat_RT_point_x);
+    this->lon_lat_RT_point_->set__y(lon_lat_RT_point_y);
+
+    RCLCPP_INFO(
+        this->node_->get_logger(),
+        "initialize_position lon_lat_RT_point_\n\tx : [%f]\n\ty : [%f]",
+        lon_lat_RT_point_->get__x(),
+        lon_lat_RT_point_->get__y()
+    );
+    RCLCPP_LINE_INFO();
 }
 
 std_msgs::msg::Header gps_slam_conversion::node::GpsSLAMConverter::build_header(const char *frame_id)

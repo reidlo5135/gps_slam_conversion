@@ -1,6 +1,7 @@
 #ifndef POSITION_CONVERTER__HXX
 #define POSITION_CONVERTER__HXX
 
+#include <vector>
 #include <cmath>
 #include <memory>
 #include "gps_slam_converter/utils.hxx"
@@ -59,6 +60,7 @@ namespace gps_slam_conversion
             double mapping_max_height_;
             double slam_rotation_angle_;
             gps_slam_conversion::position::Point area_offset_;
+            gps_slam_conversion::position::Point get_moving_lon_lat(double lon, double lat, double distance, double radian);
 
         public:
             explicit PositionConverter();
@@ -93,6 +95,12 @@ namespace gps_slam_conversion
 
             gps_slam_conversion::position::Point convert_slam_pos(int x, int y, gps_slam_conversion::position::WorkType type);
             double get_angle(double lon1, double lat1, double lon2, double lat2);
+            std::vector<gps_slam_conversion::position::Point> convert_slam_to_virtual_map_area(
+                int x, int y, int width, int height,
+                double dist_per_pix,
+                gps_slam_conversion::position::Point map_point,
+                gps_slam_conversion::position::Point lon_lat_lt, gps_slam_conversion::position::Point lon_lat_rt);
+                
         };
     }
 }
