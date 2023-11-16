@@ -1,4 +1,6 @@
 #include "gps_slam_converter/gps_slam_converter.hxx"
+#include <iostream>
+#include <iomanip>
 
 void position_test()
 {
@@ -16,6 +18,40 @@ void position_test()
     // LB : 128.8575686001505289,35.1574301543503580
     // RT : 128.8588706034498728,35.1584631433985280
 
+    std::shared_ptr<gps_slam_conversion::position::PositionConverter> position_converter = std::make_shared<gps_slam_conversion::position::PositionConverter>();
+
+    std::shared_ptr<gps_slam_conversion::position::Point> map_point = std::make_shared<gps_slam_conversion::position::Point>();
+    map_point->set__x(128.8586);
+    map_point->set__y(35.15797);
+
+    std::shared_ptr<gps_slam_conversion::position::Point> lon_lat_LT = std::make_shared<gps_slam_conversion::position::Point>();
+    lon_lat_LT->set__x(128.858009083);
+    lon_lat_LT->set__y(35.157430158);
+
+    std::shared_ptr<gps_slam_conversion::position::Point> lon_lat_RT = std::make_shared<gps_slam_conversion::position::Point>();
+    lon_lat_RT->set__x(128.858870603);
+    lon_lat_RT->set__y(35.158056682);
+
+    const std::vector<gps_slam_conversion::position::Point> &virtual_arr = position_converter->convert_slam_to_virtual_map_area(
+        260, 65,
+        302, 117, 0.05,
+        *map_point,
+        *lon_lat_LT,
+        *lon_lat_RT);
+
+    for (const gps_slam_conversion::position::Point &point : virtual_arr)
+    {
+        std::cout << std::fixed << std::setprecision(13) << point.get__x() << std::endl;
+        std::cout << std::fixed << std::setprecision(13) << point.get__y() << std::endl;
+
+        // RCUTILS_LOG_INFO_NAMED(
+        //     RCL_NODE_NAME,
+        //     "virtual point arr\n\tx : %f\n\ty : %f",
+        //     point.get__x(),
+        //     point.get__y());
+        // RCLCPP_LINE_INFO();
+    }
+
     std::shared_ptr<gps_slam_conversion::position::Point> intersection_start_point = std::make_shared<gps_slam_conversion::position::Point>();
     intersection_start_point->set__x(128.858009083);
     intersection_start_point->set__y(35.157430158);
@@ -24,7 +60,6 @@ void position_test()
     intersection_end_point->set__x(128.858870603);
     intersection_end_point->set__y(35.158056682);
 
-    std::shared_ptr<gps_slam_conversion::position::PositionConverter> position_converter = std::make_shared<gps_slam_conversion::position::PositionConverter>();
     position_converter->init_area(302, 117, *intersection_start_point, *intersection_end_point);
 
     std::shared_ptr<gps_slam_conversion::position::Point> lon_lat_LB_point = std::make_shared<gps_slam_conversion::position::Point>();
@@ -90,11 +125,12 @@ void position_test()
 
 int main(int argc, const char *const *argv)
 {
-    position_test();
-    // rclcpp::init(argc, argv);
-    // rclcpp::Node::SharedPtr rcl_node_ptr = std::make_shared<gps_slam_conversion::node::GpsSLAMConverter>();
-    // rclcpp::spin(rcl_node_ptr);
-    // rclcpp::shutdown();
+    // position_test();
+    
+    rclcpp::init(argc, argv);
+    rclcpp::Node::SharedPtr rcl_node_ptr = std::make_shared<gps_slam_conversion::node::GpsSLAMConverter>();
+    rclcpp::spin(rcl_node_ptr);
+    rclcpp::shutdown();
 
     return 0;
 }

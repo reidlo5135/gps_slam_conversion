@@ -56,6 +56,7 @@ namespace gps_slam_conversion
 
             void declare_parameters_by_list();
             void initialize_virtual_map_position();
+            void position_test();
             void initialize_position();
 
             std_msgs::msg::Header build_header(const char *frame_id);
