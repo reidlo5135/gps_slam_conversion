@@ -225,8 +225,8 @@ gps_slam_conversion::position::Point gps_slam_conversion::position::PositionConv
         double s_x = std::round(cos(b - slam_rotation_angle) * len);
         double s_y = std::round(sin(b - slam_rotation_angle) * len);
 
-        point->set__x(s_x);
-        point->set__y(s_y);
+        point->set__x(s_x / 20.0);
+        point->set__y(s_y / 20.0);
 
         // RCUTILS_LOG_INFO_NAMED(
         //     RCL_NODE_NAME,

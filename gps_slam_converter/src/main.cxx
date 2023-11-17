@@ -133,9 +133,12 @@ int main(int argc, const char *const *argv)
     // position_test();
     
     rclcpp::init(argc, argv);
-    rclcpp::Node::SharedPtr rcl_node_ptr = std::make_shared<gps_slam_conversion::node::GpsSLAMConverter>();
-    rclcpp::spin(rcl_node_ptr);
+    rclcpp::Node::SharedPtr node = std::make_shared<gps_slam_conversion::node::GpsSLAMConverter>();
+    rclcpp::executors::MultiThreadedExecutor multithread_executor;
+	multithread_executor.add_node(node);
+
+    multithread_executor.spin();
     rclcpp::shutdown();
 
-    return 0;
+    return RCL_STOP_FLAG;
 }
