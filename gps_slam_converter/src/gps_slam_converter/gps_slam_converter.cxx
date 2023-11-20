@@ -305,7 +305,7 @@ void gps_slam_conversion::node::GpsSLAMConverter::initialize_virtual_map_positio
 void gps_slam_conversion::node::GpsSLAMConverter::position_test()
 {
     // 1
-    gps_slam_conversion::position::Point gps_point_1 = this->position_converter_->convert_slam_to_gps(324, 150, *lon_lat_LB_point_, *lon_lat_RT_point_);
+    gps_slam_conversion::position::Point gps_point_1 = this->position_converter_->convert_slam_to_gps(180, 226, *lon_lat_LB_point_, *lon_lat_RT_point_);
     double differ_y_1 = 35.15800009142947 - gps_point_1.get__y();
     double differ_x_1 = 128.85864084895368 - gps_point_1.get__x();
     RCUTILS_LOG_INFO_NAMED(RCL_NODE_NAME, "gps_point_1\n\tlat : %f\n\tlon : %f", gps_point_1.get__x(), gps_point_1.get__y());
@@ -316,29 +316,29 @@ void gps_slam_conversion::node::GpsSLAMConverter::position_test()
     RCUTILS_LOG_INFO_NAMED(RCL_NODE_NAME, "slam_point_1\n\tx : %f\n\ty : %f", slam_point_1.get__x(), slam_point_1.get__y());
     RCLCPP_LINE_INFO();
 
-    // 2
-    gps_slam_conversion::position::Point gps_point_2 = this->position_converter_->convert_slam_to_gps(215, 90, *lon_lat_LB_point_, *lon_lat_RT_point_);
-    double differ_y_2 = 35.15800009142947 - gps_point_2.get__y();
-    double differ_x_2 = 128.85864084895368 - gps_point_2.get__x();
-    RCUTILS_LOG_INFO_NAMED(RCL_NODE_NAME, "gps_point_2\n\tlat : %f\n\tlon : %f", gps_point_2.get__x(), gps_point_2.get__y());
-    RCUTILS_LOG_INFO_NAMED(RCL_NODE_NAME, "differ_y_2\n\tlat : %f\n\tlon : %f", differ_y_2, differ_x_2);
-    RCLCPP_LINE_INFO();
+    // // 2
+    // gps_slam_conversion::position::Point gps_point_2 = this->position_converter_->convert_slam_to_gps(215, 90, *lon_lat_LB_point_, *lon_lat_RT_point_);
+    // double differ_y_2 = 35.15800009142947 - gps_point_2.get__y();
+    // double differ_x_2 = 128.85864084895368 - gps_point_2.get__x();
+    // RCUTILS_LOG_INFO_NAMED(RCL_NODE_NAME, "gps_point_2\n\tlat : %f\n\tlon : %f", gps_point_2.get__x(), gps_point_2.get__y());
+    // RCUTILS_LOG_INFO_NAMED(RCL_NODE_NAME, "differ_y_2\n\tlat : %f\n\tlon : %f", differ_y_2, differ_x_2);
+    // RCLCPP_LINE_INFO();
 
-    gps_slam_conversion::position::Point slam_point_2 = this->position_converter_->convert_gps_to_slam(gps_point_2.get__x(), gps_point_2.get__y(), *lon_lat_LB_point_, *lon_lat_RT_point_);
-    RCUTILS_LOG_INFO_NAMED(RCL_NODE_NAME, "slam_point_2\n\tx : %f\n\ty : %f", slam_point_2.get__x(), slam_point_2.get__y());
-    RCLCPP_LINE_INFO();
+    // gps_slam_conversion::position::Point slam_point_2 = this->position_converter_->convert_gps_to_slam(gps_point_2.get__x(), gps_point_2.get__y(), *lon_lat_LB_point_, *lon_lat_RT_point_);
+    // RCUTILS_LOG_INFO_NAMED(RCL_NODE_NAME, "slam_point_2\n\tx : %f\n\ty : %f", slam_point_2.get__x(), slam_point_2.get__y());
+    // RCLCPP_LINE_INFO();
 
-    // 2
-    gps_slam_conversion::position::Point gps_point_3 = this->position_converter_->convert_slam_to_gps(113, 95, *lon_lat_LB_point_, *lon_lat_RT_point_);
-    double differ_y_3 = 35.15800009142947 - gps_point_3.get__y();
-    double differ_x_3 = 128.85864084895368 - gps_point_3.get__x();
-    RCUTILS_LOG_INFO_NAMED(RCL_NODE_NAME, "gps_point_3\n\tlat : %f\n\tlon : %f", gps_point_3.get__x(), gps_point_3.get__y());
-    RCUTILS_LOG_INFO_NAMED(RCL_NODE_NAME, "differ_3\n\tlat : %f\n\tlon : %f", differ_y_3, differ_x_3);
-    RCLCPP_LINE_INFO();
+    // // 3
+    // gps_slam_conversion::position::Point gps_point_3 = this->position_converter_->convert_slam_to_gps(113, 95, *lon_lat_LB_point_, *lon_lat_RT_point_);
+    // double differ_y_3 = 35.15800009142947 - gps_point_3.get__y();
+    // double differ_x_3 = 128.85864084895368 - gps_point_3.get__x();
+    // RCUTILS_LOG_INFO_NAMED(RCL_NODE_NAME, "gps_point_3\n\tlat : %f\n\tlon : %f", gps_point_3.get__x(), gps_point_3.get__y());
+    // RCUTILS_LOG_INFO_NAMED(RCL_NODE_NAME, "differ_3\n\tlat : %f\n\tlon : %f", differ_y_3, differ_x_3);
+    // RCLCPP_LINE_INFO();
 
-    gps_slam_conversion::position::Point slam_point_3 = this->position_converter_->convert_gps_to_slam(gps_point_3.get__x(), gps_point_3.get__y(), *lon_lat_LB_point_, *lon_lat_RT_point_);
-    RCUTILS_LOG_INFO_NAMED(RCL_NODE_NAME, "slam_point_3\n\tx : %f\n\ty : %f", slam_point_3.get__x(), slam_point_3.get__y());
-    RCLCPP_LINE_INFO();
+    // gps_slam_conversion::position::Point slam_point_3 = this->position_converter_->convert_gps_to_slam(gps_point_3.get__x(), gps_point_3.get__y(), *lon_lat_LB_point_, *lon_lat_RT_point_);
+    // RCUTILS_LOG_INFO_NAMED(RCL_NODE_NAME, "slam_point_3\n\tx : %f\n\ty : %f", slam_point_3.get__x(), slam_point_3.get__y());
+    // RCLCPP_LINE_INFO();
 }
 
 void gps_slam_conversion::node::GpsSLAMConverter::initialize_position()
