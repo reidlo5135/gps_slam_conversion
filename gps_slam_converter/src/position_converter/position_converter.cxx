@@ -1,4 +1,6 @@
 #include "position_converter/position_converter.hxx"
+#include <iostream>
+#include <iomanip>
 
 gps_slam_conversion::position::PositionConverter::PositionConverter()
 {
@@ -223,8 +225,8 @@ gps_slam_conversion::position::Point gps_slam_conversion::position::PositionConv
         double s_x = std::round(cos(b - slam_rotation_angle) * len);
         double s_y = std::round(sin(b - slam_rotation_angle) * len);
 
-        point->set__x(s_x);
-        point->set__y(s_y);
+        point->set__x(s_x / 20.0);
+        point->set__y(s_y / 20.0);
 
         // RCUTILS_LOG_INFO_NAMED(
         //     RCL_NODE_NAME,
@@ -281,52 +283,99 @@ std::vector<gps_slam_conversion::position::Point> gps_slam_conversion::position:
     gps_slam_conversion::position::Point map_point,
     gps_slam_conversion::position::Point lon_lat_lt, gps_slam_conversion::position::Point lon_lat_rt)
 {
-    const double &map_point_x = map_point.get__x();
-    const double &map_point_y = map_point.get__y();
+    
     const double &lon_lat_lt_x = lon_lat_lt.get__x();
+    std::cout << std::setprecision(13) << "lon_lat_lt_x : " << lon_lat_lt_x << '\n';
+    
     const double &lon_lat_lt_y = lon_lat_lt.get__y();
-    const double &lon_lat_rt_x = lon_lat_lt.get__x();
-    const double &lon_lat_rt_y = lon_lat_lt.get__y();
+    std::cout << std::setprecision(13) << "lon_lat_lt_y : " << lon_lat_lt_y << '\n';
+
+    const double &lon_lat_rt_x = lon_lat_rt.get__x();
+    std::cout << std::setprecision(13) << "lon_lat_rt_x : " << lon_lat_rt_x << '\n';
+    
+    const double &lon_lat_rt_y = lon_lat_rt.get__y();
+    std::cout << std::setprecision(13) << "lon_lat_rt_y : " << lon_lat_rt_y << '\n';
 
     const double &slam_rotation_angle = this->get_angle(
         lon_lat_lt_x, lon_lat_lt_y,
         lon_lat_rt_x, lon_lat_rt_y);
+    std::cout << std::setprecision(13) << "slam_rotation_angle : " << slam_rotation_angle << '\n';
+    
+    const double &map_point_x = map_point.get__x();
+    std::cout << std::setprecision(13) << "map_point_x : " << map_point_x << '\n';
 
-    const double &y_dist_slam = (height - y) * dist_per_pix;
-    const double &x_dist_slam = (width - x) * dist_per_pix;
-    const double &rt_point_angle = atan2(height - y, width - x);
-    const double &dist_slam = sqrt(pow((height - y), 2) + pow((width - x), 2)) * dist_per_pix;
+    const double &map_point_y = map_point.get__y();
+    std::cout << std::setprecision(13) << "map_point_y : " << map_point_y << '\n';
 
-    const double &diagonal_angle = atan2(height, width);
-    const double &diagonal_distance = sqrt(pow((height), 2) + pow((width), 2)) * dist_per_pix;
-    const double &height_distance = height * dist_per_pix;
-    const double &width_distance = width * dist_per_pix;
+
+    double y_dist_slam = (height - y) * dist_per_pix;
+    std::cout << std::setprecision(13) << "y_dist_slam : " << y_dist_slam << '\n';
+
+    double x_dist_slam = (width - x) * dist_per_pix;
+    std::cout << std::setprecision(13) << "x_dist_slam : " << x_dist_slam << '\n';
+
+    double rt_point_angle = atan2(height - y, width - x);
+    std::cout << std::setprecision(13) << "rt_point_angle : " << rt_point_angle << '\n';
+
+
+    double dist_slam = sqrt(pow((height - y), 2) + pow((width - x), 2)) * dist_per_pix;
+    std::cout << std::setprecision(13) << "dist_slam : " << dist_slam << '\n';
+
+    double diagonal_angle = atan2(height, width);
+    std::cout << std::setprecision(13) << "diagonal_angle : " << diagonal_angle << '\n';
+
+    double diagonal_distance = sqrt(pow((height), 2) + pow((width), 2)) * dist_per_pix;    
+    std::cout << std::setprecision(13) << "diagonal_distance : " << diagonal_distance << '\n';
+
+    double height_distance = height * dist_per_pix;
+    std::cout << std::setprecision(13) << "height_distance : " << height_distance << '\n';
+
+    double width_distance = width * dist_per_pix;
+    std::cout << std::setprecision(13) << "width_distance : " << width_distance << '\n';
+
 
     const gps_slam_conversion::position::Point &right_top_pos = this->get_moving_lon_lat(
         map_point_x, map_point_y, dist_slam,
         slam_rotation_angle + rt_point_angle);
+    std::cout << std::setprecision(13) << "right_top_pos x : " << right_top_pos.get__x() << '\n';
+    std::cout << std::setprecision(13) << "right_top_pos y : " << right_top_pos.get__y() << '\n';
 
     const gps_slam_conversion::position::Point &left_top_pos = this->get_moving_lon_lat(
         right_top_pos.get__x(), right_top_pos.get__y(),
         width_distance, slam_rotation_angle + M_PI);
+
+    std::cout << std::setprecision(13) << "left_top_pos x : " << left_top_pos.get__x() << '\n';
+    std::cout << std::setprecision(13) << "left_top_pos y : " << left_top_pos.get__y() << '\n';
     
     const gps_slam_conversion::position::Point &left_bottom_pos = this->get_moving_lon_lat(
         right_top_pos.get__x(), right_top_pos.get__y(),
         diagonal_distance, slam_rotation_angle + diagonal_angle + M_PI);
 
+    std::cout << std::setprecision(13) << "left_bottom_pos x : " << right_top_pos.get__x() << '\n';
+    std::cout << std::setprecision(13) << "left_bottom_pos y : " << left_bottom_pos.get__y() << '\n';        
+
     const gps_slam_conversion::position::Point &right_bottom_pos = this->get_moving_lon_lat(
         right_top_pos.get__x(), right_top_pos.get__y(),
         height_distance, slam_rotation_angle + (M_PI + (M_PI / 2)));
 
+    std::cout << std::setprecision(13) << "right_bottom_pos x : " << right_bottom_pos.get__x() << '\n';
+    std::cout << std::setprecision(13) << "right_bottom_pos y : " << right_bottom_pos.get__y() << '\n';
+
     std::unique_ptr<gps_slam_conversion::position::Point> left_point = std::make_unique<gps_slam_conversion::position::Point>();
     left_point->set__x(left_top_pos.get__x());
-    left_point->set__y(left_top_pos.get__y());
+    left_point->set__y(left_bottom_pos.get__y());
+
+    std::cout << std::setprecision(13) << "left_point x : " << left_point->get__x() << '\n';
+    std::cout << std::setprecision(13) << "left_point y : " << left_point->get__y() << '\n';
 
     gps_slam_conversion::position::Point &&left_point_moved = std::move(*left_point);
 
     std::unique_ptr<gps_slam_conversion::position::Point> right_point = std::make_unique<gps_slam_conversion::position::Point>();
     right_point->set__x(right_bottom_pos.get__x());
-    right_point->set__y(right_bottom_pos.get__y());
+    right_point->set__y(right_top_pos.get__y());
+
+    std::cout << std::setprecision(13) << "right_point x : " << right_point->get__x() << '\n';
+    std::cout << std::setprecision(13) << "right_point y : " << right_point->get__y() << '\n';
 
     gps_slam_conversion::position::Point &&right_point_moved = std::move(*right_point);
 
@@ -339,8 +388,8 @@ std::vector<gps_slam_conversion::position::Point> gps_slam_conversion::position:
 
 gps_slam_conversion::position::Point gps_slam_conversion::position::PositionConverter::get_moving_lon_lat(double lon, double lat, double distance, double radian)
 {
-    double dist_per_lon_degree = 91290.0;
     double dist_per_lat_degree = 110941.0;
+    double dist_per_lon_degree = 91290.0;
 
     double quadrant_1 = 90 * M_PI / 180;
     double quadrant_2 = 180 * M_PI / 180;
@@ -364,7 +413,7 @@ gps_slam_conversion::position::Point gps_slam_conversion::position::PositionConv
     }
     else if (quadrant_3 >= radian)
     {
-        longitude = lon + longitude_move;
+        longitude = lon - longitude_move;
         latitude = lat - latitude_move;
     }
     else {
