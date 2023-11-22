@@ -61,7 +61,7 @@ gps_slam_conversion::node::GpsSLAMConverter::GpsSLAMConverter()
         converted_gps_publihser_opts);
 
     this->converter_service_ = this->node_->create_service<gps_slam_conversion_msgs::srv::Conversion>(
-        RCL_CONVERTER_SERVICE_SERVER_NAME,
+        RCL_GTS_CONVERTER_SERVICE_SERVER_NAME,
         std::bind(&gps_slam_conversion::node::GpsSLAMConverter::converter_service_cb, this, _1, _2));
 }
 
@@ -531,7 +531,7 @@ void gps_slam_conversion::node::GpsSLAMConverter::gps_subscription_cb(sensor_msg
 void gps_slam_conversion::node::GpsSLAMConverter::converter_service_cb(const gps_slam_conversion_msgs::srv::Conversion::Request::SharedPtr request, gps_slam_conversion_msgs::srv::Conversion::Response::SharedPtr response)
 {
     const std::string &request_conversion_target_data = request->conversion_target.data;
-    RCLCPP_INFO(this->node_->get_logger(), "[%s] conversion_target : %s", RCL_CONVERTER_SERVICE_SERVER_NAME, request_conversion_target_data.c_str());
+    RCLCPP_INFO(this->node_->get_logger(), "[%s] conversion_target : %s", RCL_GTS_CONVERTER_SERVICE_SERVER_NAME, request_conversion_target_data.c_str());
 
     std::vector<sensor_msgs::msg::NavSatFix> gps_request_list = request->gps_request_list;
     const size_t gps_request_list_size = gps_request_list.size();
@@ -541,25 +541,25 @@ void gps_slam_conversion::node::GpsSLAMConverter::converter_service_cb(const gps
 
     if (request_conversion_target_data == "")
     {
-        RCLCPP_ERROR(this->node_->get_logger(), "[%s] conversion_target is empty", RCL_CONVERTER_SERVICE_SERVER_NAME);
+        RCLCPP_ERROR(this->node_->get_logger(), "[%s] conversion_target is empty", RCL_GTS_CONVERTER_SERVICE_SERVER_NAME);
         RCLCPP_LINE_ERROR();
         return;
     }
-    else if (request_conversion_target_data == RCL_CONVERTER_SERVICE_CONVERSION_TARGET_SLAM)
+    else if (request_conversion_target_data == RCL_GTS_CONVERTER_SERVICE_CONVERSION_TARGET_SLAM)
     {
         bool is_gps_request_list_empty = gps_request_list.empty();
         bool is_slam_request_list_not_empty = !slam_pose_request_list.empty();
 
         if (is_gps_request_list_empty)
         {
-            RCLCPP_ERROR(this->node_->get_logger(), "[%s] GPS conversion gps_request_list is empty", RCL_CONVERTER_SERVICE_SERVER_NAME);
+            RCLCPP_ERROR(this->node_->get_logger(), "[%s] GPS conversion gps_request_list is empty", RCL_GTS_CONVERTER_SERVICE_SERVER_NAME);
             RCLCPP_LINE_ERROR();
             return;
         }
 
         if (is_slam_request_list_not_empty)
         {
-            RCLCPP_ERROR(this->node_->get_logger(), "[%s] GPS conversion slam_pose_request_list is not empty. cleared", RCL_CONVERTER_SERVICE_SERVER_NAME);
+            RCLCPP_ERROR(this->node_->get_logger(), "[%s] GPS conversion slam_pose_request_list is not empty. cleared", RCL_GTS_CONVERTER_SERVICE_SERVER_NAME);
             RCLCPP_LINE_ERROR();
             slam_pose_request_list.clear();
         }
@@ -593,7 +593,7 @@ void gps_slam_conversion::node::GpsSLAMConverter::converter_service_cb(const gps
                 RCLCPP_INFO(
                     this->node_->get_logger(),
                     "[%s] slam_pose_reponse_list\n\tx : %f\n\ty :%f",
-                    RCL_CONVERTER_SERVICE_SERVER_NAME,
+                    RCL_GTS_CONVERTER_SERVICE_SERVER_NAME,
                     response_pose_x, response_pose_y);
                 RCLCPP_LINE_INFO();
             });
@@ -605,21 +605,21 @@ void gps_slam_conversion::node::GpsSLAMConverter::converter_service_cb(const gps
             return;
         }
     }
-    else if (request_conversion_target_data == RCL_CONVERTER_SERVICE_CONVERSION_TARGET_GPS)
+    else if (request_conversion_target_data == RCL_GTS_CONVERTER_SERVICE_CONVERSION_TARGET_GPS)
     {
         bool is_slam_request_list_empty = slam_pose_request_list.empty();
         bool is_gps_request_list_not_empty = !gps_request_list.empty();
         
         if (is_slam_request_list_empty)
         {
-            RCLCPP_ERROR(this->node_->get_logger(), "[%s] SLAM conversion slam_pose_request_list is empty", RCL_CONVERTER_SERVICE_SERVER_NAME);
+            RCLCPP_ERROR(this->node_->get_logger(), "[%s] SLAM conversion slam_pose_request_list is empty", RCL_GTS_CONVERTER_SERVICE_SERVER_NAME);
             RCLCPP_LINE_ERROR();
             return;
         }
         
         if (is_gps_request_list_not_empty)
         {
-            RCLCPP_ERROR(this->node_->get_logger(), "[%s] SLAM conversion gps_request_list is not empty. cleared", RCL_CONVERTER_SERVICE_SERVER_NAME);
+            RCLCPP_ERROR(this->node_->get_logger(), "[%s] SLAM conversion gps_request_list is not empty. cleared", RCL_GTS_CONVERTER_SERVICE_SERVER_NAME);
             RCLCPP_LINE_ERROR();
             gps_request_list.clear();
         }
@@ -653,7 +653,7 @@ void gps_slam_conversion::node::GpsSLAMConverter::converter_service_cb(const gps
                 RCLCPP_INFO(
                     this->node_->get_logger(),
                     "[%s] gps_reponse_list\n\tx : %f\n\ty :%f",
-                    RCL_CONVERTER_SERVICE_SERVER_NAME,
+                    RCL_GTS_CONVERTER_SERVICE_SERVER_NAME,
                     response_pose_lon, response_pose_lat);
                 RCLCPP_LINE_INFO();
             });
@@ -667,7 +667,7 @@ void gps_slam_conversion::node::GpsSLAMConverter::converter_service_cb(const gps
     }
     else
     {
-        RCLCPP_ERROR(this->node_->get_logger(), "%s request is invalid", RCL_CONVERTER_SERVICE_SERVER_NAME);
+        RCLCPP_ERROR(this->node_->get_logger(), "%s request is invalid", RCL_GTS_CONVERTER_SERVICE_SERVER_NAME);
         RCLCPP_LINE_ERROR();
     }
 }
