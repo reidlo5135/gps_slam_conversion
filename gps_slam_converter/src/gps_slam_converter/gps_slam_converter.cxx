@@ -305,7 +305,7 @@ void gps_slam_conversion::node::GpsSLAMConverter::initialize_virtual_map_positio
 void gps_slam_conversion::node::GpsSLAMConverter::position_test()
 {
     // 1
-    gps_slam_conversion::position::Point gps_point_1 = this->position_converter_->convert_slam_to_gps(180, 226, *lon_lat_LB_point_, *lon_lat_RT_point_);
+    gps_slam_conversion::position::Point gps_point_1 = this->position_converter_->convert_slam_to_gps(103, 108, *lon_lat_LB_point_, *lon_lat_RT_point_);
     double differ_y_1 = 35.15800009142947 - gps_point_1.get__y();
     double differ_x_1 = 128.85864084895368 - gps_point_1.get__x();
     RCUTILS_LOG_INFO_NAMED(RCL_NODE_NAME, "gps_point_1\n\tlat : %f\n\tlon : %f", gps_point_1.get__x(), gps_point_1.get__y());
