@@ -69,16 +69,15 @@ class PositionConverter():
         """
         3. GPS Mapping 맵 크기
         """
-        self.map.mapping_map_width = round(math.sin(
-            slam_rotation_angle) * slam_height + math.cos(slam_rotation_angle) * slam_width)
-        self.map.mapping_map_height = round(math.cos(
-            slam_rotation_angle) * slam_height + math.sin(slam_rotation_angle) * slam_width)
+        self.map.mapping_map_width = round(math.sin(slam_rotation_angle) * slam_height + \
+            math.cos(slam_rotation_angle) * slam_width)
+        self.map.mapping_map_height = round(math.cos(slam_rotation_angle) * slam_height + \
+            math.sin(slam_rotation_angle) * slam_width)
 
         """
         4. x offset
         """
-        self.area_offset = PositionPoint(
-            x=round(math.sin(slam_rotation_angle) * slam_height), y=0.0)
+        self.area_offset = PositionPoint(x=round(math.sin(slam_rotation_angle) * slam_height), y=0.0)
 
         """
         5. 현장 맵을 포함하는 지도의 사각영역 (경위도 직교)
@@ -90,17 +89,14 @@ class PositionConverter():
         """
         1. GPS to Mapping Map
         """
-        m_x: float = ((longitude - self.lon_lat_LB.x) / (self.lon_lat_RT.x -
-                      self.lon_lat_LB.x)) * self.map.mapping_map_width
+        m_x: float = ((longitude - self.lon_lat_LB.x) / (self.lon_lat_RT.x - self.lon_lat_LB.x)) * self.map.mapping_map_width
 
         """
         2. Mapping Map to SLAM Position
         """
-        m_y: float = ((latitude - self.lon_lat_LB.y) / (self.lon_lat_RT.y -
-                      self.lon_lat_LB.y)) * self.map.mapping_map_height
+        m_y: float = ((latitude - self.lon_lat_LB.y) / (self.lon_lat_RT.y - self.lon_lat_LB.y)) * self.map.mapping_map_height
 
-        position_point: PositionPoint = self.__convert_slam_pos(
-            x=int(m_x), y=int(m_y), type=WorkType.GPS)
+        position_point: PositionPoint = self.__convert_slam_pos(x=int(m_x), y=int(m_y), type=WorkType.GPS)
 
         return position_point
 
@@ -122,8 +118,7 @@ class PositionConverter():
         """
         1. SLAM Position to Mapping Map
         """
-        m_pos: PositionPoint = self.__convert_slam_pos(
-            x=x, y=y, type=WorkType.SLAM)
+        m_pos: PositionPoint = self.__convert_slam_pos(x=x, y=y, type=WorkType.SLAM)
 
         if (m_pos == None):
             return PositionPoint(x=0.0, y=0.0)
@@ -163,8 +158,7 @@ class PositionConverter():
             """
             3. Mapping Map x
             """
-            m_x: float = math.cos(slam_rotation_angle + a) * \
-                len + self.area_offset.x
+            m_x: float = math.cos(slam_rotation_angle + a) * len + self.area_offset.x
 
             """
             4. Mapping Map y
@@ -263,14 +257,6 @@ class PositionConverter():
         lb_dist_slam: float = math.sqrt(
             math.pow((y1) * y_dist_per_pix, 2) + math.pow((x1) * x_dist_per_pix, 2))
 
-        # SLAM 우상단과 좌하단 거리
-        diagonal_distance: float = math.sqrt(
-            (math.pow((height * y_dist_per_pix), 2)) + math.pow((width * x_dist_per_pix), 2))
-
-        # SLAM 우상단과 좌하단의 각도
-        diagonal_angle: float = math.atan2(
-            height * y_dist_per_pix, width * x_dist_per_pix)
-
         # 높이
         height_distance: float = height * y_dist_per_pix
 
@@ -296,7 +282,7 @@ class PositionConverter():
 
         # 우하 lat, 우상 lon
         right_position_point: PositionPoint = PositionPoint(
-            x=right_bottom_pos.x, y=right_bottom_pos.y)
+            x=right_bottom_pos.x, y=right_top_pos.y)
 
         position_point_list: list = []
         position_point_list.append(left_position_point)
@@ -370,8 +356,7 @@ class PositionConverter():
 
         theta = lon1 - lon2
         dist = math.sin(self.__deg2rad(lat1)) * math.sin(self.__deg2rad(lat2)) + math.cos(self.__deg2rad(lat1)) * \
-            math.cos(self.__deg2rad(lat1)) * math.cos(self.__deg2rad(lat2)
-                                                      ) * math.cos(self.__deg2rad(theta))
+            math.cos(self.__deg2rad(lat2)) * math.cos(self.__deg2rad(theta))
 
         dist = radius * math.acos(dist)
 
@@ -397,8 +382,8 @@ class PositionConverter():
         sin_delta_lat: float = math.sin(delta_latitude / 2)
         sin_delta_lon: float = math.sin(delta_longitude / 2)
 
-        square_root: float = math.sqrt(sin_delta_lat * sin_delta_lat + math.cos(
-            self.__deg2rad(lat1)) * math.cos(self.__deg2rad(lat2) * sin_delta_lon * sin_delta_lon))
+        square_root: float = math.sqrt(sin_delta_lat * sin_delta_lat + \
+            math.cos(self.__deg2rad(lat1)) * math.cos(self.__deg2rad(lat2) * sin_delta_lon * sin_delta_lon))
 
         distance = 2 * radius * math.asin(square_root)
 

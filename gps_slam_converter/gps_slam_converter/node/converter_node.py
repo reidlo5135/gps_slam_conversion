@@ -63,7 +63,7 @@ class ConverterNode(Node):
 
         self.__position_converter: PositionConverter = PositionConverter(
             node=self)
-        # self.__position_test()
+        self.__position_test()
 
         self.__declare_parameters()
         self.get_logger().info(
@@ -250,9 +250,11 @@ class ConverterNode(Node):
         
         gps_request_list: Sequence = request.gps_request_list
         gps_request_list_len: int = len(gps_request_list)
+        self.get_logger().info(f'{CONVERTER_NODE} gps_slam_conversion_service_cb gps_request_list : {gps_request_list}, gps_request_list_len : {gps_request_list_len}')
         
         slam_pose_request_list: Sequence = request.slam_pose_request_list
         slam_pose_request_list_len: int = len(slam_pose_request_list)
+        self.get_logger().info(f'{CONVERTER_NODE} gps_slam_conversion_service_cb slam_pose_request_list : {slam_pose_request_list}, slam_pose_request_list_len : {slam_pose_request_list_len}')
         
         if (conversion_target_data == ''):
             self.get_logger().error(f'{CONVERTER_NODE} conversion_target is empty...')
@@ -266,27 +268,29 @@ class ConverterNode(Node):
                 return None
             
             if (not is_slam_pose_request_list_empty):
-                self.get_logger().error(f'{CONVERTER_NODE} slam_pose_request_list is empty...')
+                self.get_logger().error(f'{CONVERTER_NODE} slam_pose_request_list is not empty...')
                 slam_pose_request_list = []
+                slam_pose_request_list_len = 0
             
             slam_pose_response_list: list = []
             
             for gps_request in gps_request_list:
                 lon: float = gps_request.longitude
                 lat: float = gps_request.latitude
+                self.get_logger().info(f'{CONVERTER_NODE} gps_request_list\n\tlon : [{lon}]\n\tlat : [{lat}]]')
                 
-                position_point: PositionPoint = self.__position_converter.convert_gps_to_slam(
+                slam_pose_position_point: PositionPoint = self.__position_converter.convert_gps_to_slam(
                     longitude=lon, latitude=lat
                 )
                 
-                pose: Pose = self.__build_pose(position_point=position_point)
+                pose: Pose = self.__build_pose(position_point=slam_pose_position_point)
                 slam_pose_response_list.append(pose)
             
             slam_pose_response_list_len: int = len(slam_pose_response_list)
             
-            is_converting_finished: bool = (gps_request_list_len == slam_pose_response_list_len)
+            is_slam_pose_converting_finished: bool = (gps_request_list_len == slam_pose_response_list_len)
             
-            if is_converting_finished:
+            if is_slam_pose_converting_finished:
                 for slam_pose_response in slam_pose_response_list:
                     slam_pose_x: float = slam_pose_response.position.x
                     slam_pose_y: float = slam_pose_response.position.y
@@ -294,7 +298,53 @@ class ConverterNode(Node):
                     self.get_logger().info(f'{CONVERTER_NODE} slam_pose_response_list\n\tx : [{slam_pose_x}]\n\ty : [{slam_pose_y}]]')
                 
                 response.slam_pose_response_list = slam_pose_response_list
-        
+                
+                return response
+        elif (conversion_target_data == CONVERSION_TARGET_GPS):
+            is_slam_pose_request_list_empty: bool = not slam_pose_request_list
+            is_gps_request_list_empty: bool = not gps_request_list
+            
+            if (is_slam_pose_request_list_empty):
+                self.get_logger().error(f'{CONVERTER_NODE} slam_pose_request_list is empty...')
+                return None
+                
+            if (not is_gps_request_list_empty):
+                self.get_logger().error(f'{CONVERTER_NODE} gps_request_list is not empty...')
+                gps_request_list = []
+                gps_request_list_len = 0
+            
+            gps_response_list: list = []
+            
+            for slam_pose_request in slam_pose_request_list:
+                pose_x: float = slam_pose_request.position.x
+                pose_y: float = slam_pose_request.position.y
+                self.get_logger().info(f'{CONVERTER_NODE} slam_pose_request_list\n\tx : [{pose_x}]\n\ty : [{pose_y}]]')
+                
+                gps_position_point: PositionPoint = self.__position_converter.convert_slam_to_gps(
+                    x=pose_x, y=pose_y
+                )
+                
+                nav_sat_fix: NavSatFix = self.__build_nav_sat_fix(position_point=gps_position_point)
+                gps_response_list.append(nav_sat_fix)
+            
+            gps_response_list_len: int = len(gps_response_list)
+            
+            is_gps_converting_finished: bool = (slam_pose_request_list_len == gps_response_list_len)
+            
+            if is_gps_converting_finished:
+                for gps_response in gps_response_list:
+                    lon: float = gps_response.longitude
+                    lat: float = gps_response.latitude
+
+                    self.get_logger().info(f'{CONVERTER_NODE} gps_response_list\n\tx : [{lon}]\n\ty : [{lat}]]')
+                
+                response.gps_response_list = gps_response_list
+                
+                return response
+        else:
+            self.get_logger().error(f'{CONVERTER_NODE} unknown conversion target...aborting')
+            return None
+                
 
     def __build_header(self, frame_id: str) -> Header:
         header: Header = Header()
