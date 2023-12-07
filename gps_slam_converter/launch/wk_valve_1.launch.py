@@ -26,6 +26,7 @@ def generate_launch_description() -> LaunchDescription:
                 'slam_map_width': 1238,
                 'slam_map_height': 765,
                 'slam_map_shift': 0,
+                'slam_map_resolution': 0.05,
                 'std_point_lon1': 128.8579836,
                 'std_point_lat1': 35.1576298,
                 'std_point_lon2': 128.858333,
