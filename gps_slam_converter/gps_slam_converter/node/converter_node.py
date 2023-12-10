@@ -66,15 +66,16 @@ class ConverterNode(Node):
 
         self.__position_converter: PositionConverter = PositionConverter(
             node=self)
-        self.__position_test()
 
+        self.__position_test()
         self.__declare_parameters()
         self.get_logger().info(
             '====================================================================================')
 
         self.__slam_map_resoultion_ratio: float = 0.0
-        self.__initialize_mapping_map()
 
+        self.__initialize_mapping_map()
+        
         self.__robot_pose_subscription_topic: str = '/robot_pose'
         self.__robot_pose_subscription_cb_group: MutuallyExclusiveCallbackGroup = MutuallyExclusiveCallbackGroup()
         self.__robot_pose_subscription: Subscription = self.create_subscription(
@@ -219,8 +220,8 @@ class ConverterNode(Node):
         )
 
     def __robot_pose_subscription_cb(self, robot_pose_cb: Pose) -> None:
-        pose_x: float = robot_pose_cb.position.x
-        pose_y: float = robot_pose_cb.position.y
+        pose_x: float = robot_pose_cb.position.x * self.__slam_map_resoultion_ratio
+        pose_y: float = robot_pose_cb.position.y * self.__slam_map_resoultion_ratio
 
         position_point: PositionPoint = self.__position_converter.convert_slam_to_gps(
             x=int(pose_x), y=int(pose_y)
@@ -324,8 +325,8 @@ class ConverterNode(Node):
             gps_response_list: list = []
             
             for slam_pose_request in slam_pose_request_list:
-                pose_x: float = slam_pose_request.position.x
-                pose_y: float = slam_pose_request.position.y
+                pose_x: float = slam_pose_request.position.x * self.__slam_map_resoultion_ratio
+                pose_y: float = slam_pose_request.position.y * self.__slam_map_resoultion_ratio
                 self.get_logger().info(f'{CONVERTER_NODE} slam_pose_request_list\n\tx : [{pose_x}]\n\ty : [{pose_y}]]')
                 
                 gps_position_point: PositionPoint = self.__position_converter.convert_slam_to_gps(
@@ -394,8 +395,8 @@ class ConverterNode(Node):
         slam_y: float = position_point.y
 
         position_point: Point = Point()
-        position_point.x = (slam_x / self.__slam_map_resoultion_ratio)
-        position_point.y = (slam_y / self.__slam_map_resoultion_ratio)
+        position_point.x = slam_x
+        position_point.y = slam_y
         position_point.z = DEFAULT_FLOAT
 
         quaternion: Quaternion = Quaternion()
@@ -411,30 +412,36 @@ class ConverterNode(Node):
         return pose
 
     def __position_test(self) -> None:
-        test_pos_1: PositionPoint = PositionPoint(0, 0)
-        test_pos_2: PositionPoint = PositionPoint(1238, 765)
-        test_pos_3: PositionPoint = PositionPoint(415, 235)
+        test_pos_1: PositionPoint = PositionPoint(72, 140)
+        test_pos_2: PositionPoint = PositionPoint(392, 262)
+        test_pos_3: PositionPoint = PositionPoint(392, 140)
         test_pos_4: PositionPoint = PositionPoint(574, 235)
         test_pos_5: PositionPoint = PositionPoint(1210, 235)
         test_pos_6: PositionPoint = PositionPoint(1210, 541)
 
-        slam_map_width: int = 1238
-        slam_map_height: int = 765
+        std_point_slam_x1: int = 72
+        std_point_slam_y1: int = 140
 
-        intersection_start_point_lon: float = 128.858009083
-        intersection_start_point_lat: float = 35.157430158
-        interseciton_end_point_lon: float = 128.858870603
-        intersection_end_point_lat: float = 35.1580056682
+        std_point_slam_x2: int = 392
+        std_point_slam_y2: int = 262
 
-        std_point_slam_x1: int = 415
-        std_point_slam_y1: int = 235
-        std_point_slam_x2: int = 1210
-        std_point_slam_y2: int = 541
+        slam_map_width: int = 579
+        slam_map_height: int = 338
+        slam_map_resoultion: float = 0.2
+        
+        # self.__slam_map_resoultion_ratio = SLAM_MAP_DISTANCE / slam_map_resoultion
 
         std_point_lon1: float = 128.8579836
         std_point_lat1: float = 35.1576298
+
         std_point_lon2: float = 128.858333
         std_point_lat2: float = 35.15818
+
+        start_point_lon: float = 128.858009083
+        start_point_lat: float = 35.157430158
+
+        end_point_lon: float = 128.858870603
+        end_point_lat: float = 35.158056682
 
         shift: int = 0
 
@@ -445,9 +452,9 @@ class ConverterNode(Node):
             map_point_1=PositionPoint(std_point_lon1, std_point_lat1),
             map_point_2=PositionPoint(std_point_lon2, std_point_lat2),
             start_lon_lat=PositionPoint(
-                intersection_start_point_lon, intersection_start_point_lat),
+                start_point_lon, start_point_lat),
             end_lon_lat=PositionPoint(
-                interseciton_end_point_lon, intersection_end_point_lat)
+                end_point_lon, end_point_lat)
         )
 
         self.get_logger().info(
@@ -457,8 +464,15 @@ class ConverterNode(Node):
         slam_pos_test_1: PositionPoint = self.__position_converter.convert_gps_to_slam(
             gps_pos_test_1.x, gps_pos_test_1.y
         )
+
+        gps_node_test_1: PositionPoint = PositionPoint(128.857984, 35.157630)
+        gps_differ_x_1: float = abs(gps_node_test_1.x - gps_pos_test_1.x)
+        gps_differ_y_1: float = abs(gps_node_test_1.y - gps_pos_test_1.y)
+
         self.get_logger().info(
             f'{CONVERTER_NODE} GPS\n\tlon : [{gps_pos_test_1.x}]\n\tlat : [{gps_pos_test_1.y}]')
+        self.get_logger().info(
+            f'{CONVERTER_NODE} GPS Differ\n\tlon : [{gps_differ_x_1}]\n\tlat : [{gps_differ_y_1}]')
         self.get_logger().info(
             f'{CONVERTER_NODE} SLAM\n\tx : [{round(slam_pos_test_1.x * 100) / 100.0}]\n\ty : [{round(slam_pos_test_1.y * 100) / 100.0}]')
 
@@ -469,8 +483,14 @@ class ConverterNode(Node):
         slam_pos_test_2: PositionPoint = self.__position_converter.convert_gps_to_slam(
             gps_pos_test_2.x, gps_pos_test_2.y
         )
+
+        gps_node_test_2: PositionPoint = PositionPoint(128.858333, 35.158180)
+        gps_differ_x_2: float = abs(gps_node_test_2.x - gps_pos_test_2.x)
+        gps_differ_y_2: float = abs(gps_node_test_2.y - gps_pos_test_2.y)
         self.get_logger().info(
             f'{CONVERTER_NODE} GPS\n\tlon : [{gps_pos_test_2.x}]\n\tlat : [{gps_pos_test_2.y}]')
+        self.get_logger().info(
+            f'{CONVERTER_NODE} GPS Differ\n\tlon : [{gps_differ_x_2}]\n\tlat : [{gps_differ_y_2}]')
         self.get_logger().info(
             f'{CONVERTER_NODE} SLAM\n\tx : [{round(slam_pos_test_2.x * 100) / 100.0}]\n\ty : [{round(slam_pos_test_2.y * 100) / 100.0}]')
 
@@ -482,7 +502,7 @@ class ConverterNode(Node):
             gps_pos_test_3.x, gps_pos_test_3.y
         )
         
-        gps_pos_node_link_3: PositionPoint = PositionPoint(128.857984, 35.15763) 
+        gps_pos_node_link_3: PositionPoint = PositionPoint(128.858512, 35.158016) 
         gps_pos_differ_3_x: float = abs(gps_pos_node_link_3.x - gps_pos_test_3.x)
         gps_pos_differ_3_y: float = abs(gps_pos_node_link_3.y - gps_pos_test_3.y)
         self.get_logger().info(
