@@ -124,6 +124,8 @@ class ConverterNode(Node):
             callback=self.__gps_slam_conversion_service_cb
         )
 
+        self.__slam_pose_point_y_shift: float = 0.0
+
     def __declare_parameters(self) -> None:
         parameters_dict: dict = {
             PARAM_STD_POINT_SLAM_X1: DEFAULT_INT,
@@ -228,6 +230,8 @@ class ConverterNode(Node):
         )
 
         if position_point != None:
+            if position_point.x > 26.0 and position_point.y < 26.0:
+                position_point.y -= 1.3
             nav_sat_fix: NavSatFix = self.__build_nav_sat_fix(position_point=position_point)
             self.__slam_to_gps_publisher.publish(nav_sat_fix)
         else:
@@ -291,8 +295,23 @@ class ConverterNode(Node):
                 slam_pose_position_point: PositionPoint = self.__position_converter.convert_gps_to_slam(
                     longitude=lon, latitude=lat
                 )
+
+                slam_pose_apply_ratio_point: PositionPoint = PositionPoint(
+                    x=(slam_pose_position_point.x / self.__slam_map_resoultion_ratio), y=(slam_pose_position_point.y / self.__slam_map_resoultion_ratio)
+                )
                 
-                pose: Pose = self.__build_pose(position_point=slam_pose_position_point)
+                if slam_pose_apply_ratio_point.y < 26.0:
+                    if slam_pose_apply_ratio_point.x > 26.0:
+                        slam_pose_apply_ratio_point.y += 1.3
+                    elif slam_pose_apply_ratio_point.x > 17.0:
+                        slam_pose_apply_ratio_point.y += 0.6
+                
+                    self.get_logger().info(f'{CONVERTER_NODE} slam_pose_apply_ratio_point is over than 17.0\n\tx : [{slam_pose_apply_ratio_point.x}]\n\ty : [{slam_pose_apply_ratio_point.y}]]')
+
+                # if slam_pose_apply_ratio_point.y >= 24 or slam_pose_apply_ratio_point.y <= 26:
+                #     self.__slam_pose_point_y_shift = 
+                
+                pose: Pose = self.__build_pose(position_point=slam_pose_apply_ratio_point)
                 slam_pose_response_list.append(pose)
             
             slam_pose_response_list_len: int = len(slam_pose_response_list)
@@ -301,8 +320,8 @@ class ConverterNode(Node):
             
             if is_slam_pose_converting_finished:
                 for slam_pose_response in slam_pose_response_list:
-                    slam_pose_x: float = (slam_pose_response.position.x / self.__slam_map_resoultion_ratio)
-                    slam_pose_y: float = (slam_pose_response.position.y / self.__slam_map_resoultion_ratio)
+                    slam_pose_x: float = slam_pose_response.position.x
+                    slam_pose_y: float = slam_pose_response.position.y
                     
                     self.get_logger().info(f'{CONVERTER_NODE} slam_pose_response_list\n\tx : [{slam_pose_x}]\n\ty : [{slam_pose_y}]]')
                 
@@ -332,7 +351,11 @@ class ConverterNode(Node):
                 gps_position_point: PositionPoint = self.__position_converter.convert_slam_to_gps(
                     x=pose_x, y=pose_y
                 )
-                
+
+                if gps_position_point.x > 26.0 and gps_position_point.y < 26.0:
+                    gps_position_point.y -= 1.3
+                    self.get_logger().info(f'{CONVERTER_NODE} gps_position_point is over than 17.0\n\tx : [{gps_position_point.x}]\n\ty : [{gps_position_point.y}]]')
+
                 nav_sat_fix: NavSatFix = self.__build_nav_sat_fix(position_point=gps_position_point)
                 gps_response_list.append(nav_sat_fix)
             

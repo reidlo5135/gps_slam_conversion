@@ -19,8 +19,8 @@ def generate_launch_description() -> LaunchDescription:
         output='screen',
         parameters=[
             {
-                'std_point_slam_x1': 160,
-                'std_point_slam_y1': 247,
+                'std_point_slam_x1': 159,
+                'std_point_slam_y1': 243,
                 'std_point_slam_x2': 803,
                 'std_point_slam_y2': 484,
                 'slam_map_width': 1148,
