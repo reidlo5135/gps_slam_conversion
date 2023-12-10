@@ -101,14 +101,14 @@ class PositionConverter():
         return position_point
 
     def convert_slam_to_gps(self, x: int, y: int) -> PositionPoint:
-        self.__node.get_logger().info(
-            f'{POSITION_CONVERTER} convert_slam_to_gps lon_lat_LB\n\tx : {self.lon_lat_LB.x}\n\ty : {self.lon_lat_LB.y}')
-        self.__node.get_logger().info(
-            f'{POSITION_CONVERTER} convert_slam_to_gps lon_lat_RT\n\tx : {self.lon_lat_RT.x}\n\ty : {self.lon_lat_RT.y}')
-        self.__node.get_logger().info(
-            f'{POSITION_CONVERTER} convert_slam_to_gps robot_pose\n\tx : {x}\n\ty : {y}')
-        self.__node.get_logger().info(
-            f'{POSITION_CONVERTER} convert_slam_to_gps map_info\n\twidth : {self.map.mapping_map_width}\n\theight : {self.map.mapping_map_height}')
+        # self.__node.get_logger().info(
+        #     f'{POSITION_CONVERTER} convert_slam_to_gps lon_lat_LB\n\tx : {self.lon_lat_LB.x}\n\ty : {self.lon_lat_LB.y}')
+        # self.__node.get_logger().info(
+        #     f'{POSITION_CONVERTER} convert_slam_to_gps lon_lat_RT\n\tx : {self.lon_lat_RT.x}\n\ty : {self.lon_lat_RT.y}')
+        # self.__node.get_logger().info(
+        #     f'{POSITION_CONVERTER} convert_slam_to_gps robot_pose\n\tx : {x}\n\ty : {y}')
+        # self.__node.get_logger().info(
+        #     f'{POSITION_CONVERTER} convert_slam_to_gps map_info\n\twidth : {self.map.mapping_map_width}\n\theight : {self.map.mapping_map_height}')
 
         if self.map.mapping_map_width <= 0 or self.map.mapping_map_height <= 0:
             self.__node.get_logger().error(
@@ -237,6 +237,10 @@ class PositionConverter():
         """
         x_dist_per_pix: float = x_distance_for_gps / x_distance_for_slam
         y_dist_per_pix: float = y_distance_for_gps / y_distance_for_slam
+
+        self.__node.get_logger().info(f'x_dis_per_pix : [{x_dist_per_pix}]')
+        self.__node.get_logger().info(f'y_dis_per_pix : [{y_dist_per_pix}]')
+
 
         """
         4. SLAM 원점과 우상단의 거리와 각도
