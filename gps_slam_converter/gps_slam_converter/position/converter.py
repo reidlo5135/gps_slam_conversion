@@ -56,8 +56,7 @@ class PositionConverter():
         """
         1. lon2, lat2와 lon1, lat1로 SLAM 맵 회전 각도
         """
-        self.map.slam_rotation_angle = self.__get_angle(
-            lon1=start_lon_lat.x, lat1=start_lon_lat.y, lon2=end_lon_lat.x, lat2=end_lon_lat.y)
+        self.map.slam_rotation_angle = self.__get_angle(lon1=start_lon_lat.x, lat1=start_lon_lat.y, lon2=end_lon_lat.x, lat2=end_lon_lat.y)
         slam_rotation_angle: float = self.map.slam_rotation_angle
 
         if (slam_rotation_angle < 0):
@@ -69,10 +68,8 @@ class PositionConverter():
         """
         3. GPS Mapping 맵 크기
         """
-        self.map.mapping_map_width = round(math.sin(slam_rotation_angle) * slam_height + \
-            math.cos(slam_rotation_angle) * slam_width)
-        self.map.mapping_map_height = round(math.cos(slam_rotation_angle) * slam_height + \
-            math.sin(slam_rotation_angle) * slam_width)
+        self.map.mapping_map_width = round(math.sin(slam_rotation_angle) * slam_height + math.cos(slam_rotation_angle) * slam_width)
+        self.map.mapping_map_height = round(math.cos(slam_rotation_angle) * slam_height + math.sin(slam_rotation_angle) * slam_width)
 
         """
         4. x offset
@@ -101,14 +98,10 @@ class PositionConverter():
         return position_point
 
     def convert_slam_to_gps(self, x: int, y: int) -> PositionPoint:
-        self.__node.get_logger().info(
-            f'{POSITION_CONVERTER} convert_slam_to_gps lon_lat_LB\n\tx : {self.lon_lat_LB.x}\n\ty : {self.lon_lat_LB.y}')
-        self.__node.get_logger().info(
-            f'{POSITION_CONVERTER} convert_slam_to_gps lon_lat_RT\n\tx : {self.lon_lat_RT.x}\n\ty : {self.lon_lat_RT.y}')
-        self.__node.get_logger().info(
-            f'{POSITION_CONVERTER} convert_slam_to_gps robot_pose\n\tx : {x}\n\ty : {y}')
-        self.__node.get_logger().info(
-            f'{POSITION_CONVERTER} convert_slam_to_gps map_info\n\twidth : {self.map.mapping_map_width}\n\theight : {self.map.mapping_map_height}')
+        self.__node.get_logger().info(f'{POSITION_CONVERTER} convert_slam_to_gps lon_lat_LB\n\tx : {self.lon_lat_LB.x}\n\ty : {self.lon_lat_LB.y}')
+        self.__node.get_logger().info(f'{POSITION_CONVERTER} convert_slam_to_gps lon_lat_RT\n\tx : {self.lon_lat_RT.x}\n\ty : {self.lon_lat_RT.y}')
+        self.__node.get_logger().info(f'{POSITION_CONVERTER} convert_slam_to_gps robot_pose\n\tx : {x}\n\ty : {y}')
+        self.__node.get_logger().info(f'{POSITION_CONVERTER} convert_slam_to_gps map_info\n\twidth : {self.map.mapping_map_width}\n\theight : {self.map.mapping_map_height}')
 
         if self.map.mapping_map_width <= 0 or self.map.mapping_map_height <= 0:
             self.__node.get_logger().error(
@@ -126,12 +119,8 @@ class PositionConverter():
         """
         2. Mapping Map to GPS
         """
-        longitude: float = self.lon_lat_LB.x + \
-            (self.lon_lat_RT.x - self.lon_lat_LB.x) * \
-            (m_pos.x / self.map.mapping_map_width)
-        latitude: float = self.lon_lat_LB.y + \
-            (self.lon_lat_RT.y - self.lon_lat_LB.y) * \
-            (m_pos.y / self.map.mapping_map_height)
+        longitude: float = self.lon_lat_LB.x + (self.lon_lat_RT.x - self.lon_lat_LB.x) * (m_pos.x / self.map.mapping_map_width)
+        latitude: float = self.lon_lat_LB.y + (self.lon_lat_RT.y - self.lon_lat_LB.y) * (m_pos.y / self.map.mapping_map_height)
 
         position_point: PositionPoint = PositionPoint(x=longitude, y=latitude)
 
@@ -207,24 +196,18 @@ class PositionConverter():
         """
         1. 맵의 기울어진 각도 추출
         """
-        slam_rotation_angle: float = self.__get_angle(
-            lon1=start_lon_lat.x, lat1=start_lon_lat.y, lon2=end_lon_lat.x, lat2=end_lon_lat.y)
+        slam_rotation_angle: float = self.__get_angle(lon1=start_lon_lat.x, lat1=start_lon_lat.y, lon2=end_lon_lat.x, lat2=end_lon_lat.y)
 
         # SLAM 기준 좌표의 각도 (비율 보정 안됨)
-        slam_std_angle: float = self.__get_angle(
-            lon1=map_point_1.x, lat1=map_point_1.y, lon2=map_point_2.x, lat2=map_point_2.y) - slam_rotation_angle
+        slam_std_angle: float = self.__get_angle(lon1=map_point_1.x, lat1=map_point_1.y, lon2=map_point_2.x, lat2=map_point_2.y) - slam_rotation_angle
 
         """
         2. 두 기준 좌표간 거리
         """
-        pt_distance_for_gps: float = self.__get_distance_in_meter(
-            lat1=map_point_1.y, lon1=map_point_1.x, lat2=map_point_2.y, lon2=map_point_2.x)
-        x_distance_for_gps: float = pt_distance_for_gps * \
-            math.cos(slam_std_angle)
-        y_distance_for_gps: float = pt_distance_for_gps * \
-            math.sin(slam_std_angle)
+        pt_distance_for_gps: float = self.__get_distance_in_meter(lat1=map_point_1.y, lon1=map_point_1.x, lat2=map_point_2.y, lon2=map_point_2.x)
+        x_distance_for_gps: float = pt_distance_for_gps * math.cos(slam_std_angle)
+        y_distance_for_gps: float = pt_distance_for_gps * math.sin(slam_std_angle)
 
-        pt_distance_for_slam: float = abs(x2 - x1)
         x_distance_for_slam: float = abs(x2 - x1)
         y_distance_for_slam: float = abs(y2 - y1)
 
@@ -242,47 +225,37 @@ class PositionConverter():
         4. SLAM 원점과 우상단의 거리와 각도
         """
         # SLAM 우상단과 우측 기준 좌표와의 각도
-        rt_point_angle: float = math.atan2(
-            (height - y2) * y_dist_per_pix, (width - x2) * x_dist_per_pix)
+        rt_point_angle: float = math.atan2((height - y2) * y_dist_per_pix, (width - x2) * x_dist_per_pix)
 
         # SLAM 우상단과 우측 기준 좌표와의 거리
-        rt_dist_slam: float = math.sqrt(math.pow(
-            (height - y2) * y_dist_per_pix, 2) + math.pow((width - x2) * x_dist_per_pix, 2))
+        rt_dist_slam: float = math.sqrt(math.pow((height - y2) * y_dist_per_pix, 2) + math.pow((width - x2) * x_dist_per_pix, 2))
 
         # SLAM 좌하단과 좌측 기준 좌표와의 각도
-        lb_point_angle: float = math.atan2(
-            y1 * y_dist_per_pix, x1 * x_dist_per_pix)
+        lb_point_angle: float = math.atan2(y1 * y_dist_per_pix, x1 * x_dist_per_pix)
 
         # SLAM 좌하단과 좌측 기준 좌표와의 거리
-        lb_dist_slam: float = math.sqrt(
-            math.pow((y1) * y_dist_per_pix, 2) + math.pow((x1) * x_dist_per_pix, 2))
+        lb_dist_slam: float = math.sqrt(math.pow((y1) * y_dist_per_pix, 2) + math.pow((x1) * x_dist_per_pix, 2))
 
         # 높이
         height_distance: float = height * y_dist_per_pix
 
         # SLAM 거리와 각도에 해당하는 현장 맵 우상단 좌표 추출 (현장 맵 원점 기준, 맵 각도 반역)(상단 교점)
-        right_top_pos: PositionPoint = self.__get_moving_lon_lat(
-            lon=map_point_2.x, lat=map_point_2.y, distance=rt_dist_slam, radian=(slam_rotation_angle + rt_point_angle))
+        right_top_pos: PositionPoint = self.__get_moving_lon_lat(lon=map_point_2.x, lat=map_point_2.y, distance=rt_dist_slam, radian=(slam_rotation_angle + rt_point_angle))
 
         # SLAM 거리와 각도의 해당하는 현장맵 좌하단 구하기(하단 교점)
-        left_bottom_pos: PositionPoint = self.__get_moving_lon_lat(
-            lon=map_point_1.x, lat=map_point_1.y, distance=lb_dist_slam, radian=(slam_rotation_angle + lb_point_angle + PI))
+        left_bottom_pos: PositionPoint = self.__get_moving_lon_lat(lon=map_point_1.x, lat=map_point_1.y, distance=lb_dist_slam, radian=(slam_rotation_angle + lb_point_angle + PI))
 
         # SLAM height로 현장 맵 우하단 구하기(우측 교점)
-        right_bottom_pos: PositionPoint = self.__get_moving_lon_lat(
-            lon=right_top_pos.x, lat=right_top_pos.y, distance=height_distance, radian=(slam_rotation_angle + (PI + PI / 2)))
+        right_bottom_pos: PositionPoint = self.__get_moving_lon_lat(lon=right_top_pos.x, lat=right_top_pos.y, distance=height_distance, radian=(slam_rotation_angle + (PI + PI / 2)))
 
         # SLAM width로 현장 맵 좌상단 구하기(좌측 교점)
-        left_top_pos: PositionPoint = self.__get_moving_lon_lat(
-            lon=left_bottom_pos.x, lat=left_bottom_pos.y, distance=height_distance, radian=(slam_rotation_angle + PI / 2))
+        left_top_pos: PositionPoint = self.__get_moving_lon_lat(lon=left_bottom_pos.x, lat=left_bottom_pos.y, distance=height_distance, radian=(slam_rotation_angle + PI / 2))
 
         # 좌상 lat, 좌하 lon
-        left_position_point: PositionPoint = PositionPoint(
-            x=left_top_pos.x, y=left_bottom_pos.y)
+        left_position_point: PositionPoint = PositionPoint(x=left_top_pos.x, y=left_bottom_pos.y)
 
         # 우하 lat, 우상 lon
-        right_position_point: PositionPoint = PositionPoint(
-            x=right_bottom_pos.x, y=right_top_pos.y)
+        right_position_point: PositionPoint = PositionPoint(x=right_bottom_pos.x, y=right_top_pos.y)
 
         position_point_list: list = []
         position_point_list.append(left_position_point)
@@ -292,10 +265,8 @@ class PositionConverter():
 
     def __get_moving_lon_lat(self, lon: float, lat: float, distance: float, radian: float) -> PositionPoint:
         # 현재 위도의 1도당 거리 (m)
-        dist_per_lat_degree: float = self.__distance_in_meter_by_haversine(
-            lat1=int(lat), lon1=lon, lat2=(int(lat) + 1), lon2=lon)
-        dist_per_lon_degree: float = self.__distance_in_meter_by_haversine(
-            lat1=lat, lon1=int(lon), lat2=lat, lon2=(int(lon) + 1))
+        dist_per_lat_degree: float = self.__distance_in_meter_by_haversine(lat1=int(lat), lon1=lon, lat2=(int(lat) + 1), lon2=lon)
+        dist_per_lon_degree: float = self.__distance_in_meter_by_haversine(lat1=lat, lon1=int(lon), lat2=lat, lon2=(int(lon) + 1))
 
         # 위도 35의 경도 1도의 길이(m)
         if (dist_per_lat_degree <= 0):
@@ -309,10 +280,8 @@ class PositionConverter():
         quadrant2: float = 180 * PI / 180
         quadrant3: float = 270 * PI / 180
 
-        longitude_move: float = (math.sqrt(math.pow(
-            distance, 2) - math.pow(math.sin(radian) * distance, 2))) / dist_per_lon_degree
-        latitude_move: float = (math.sqrt(math.pow(
-            distance, 2) - math.pow(math.cos(radian) * distance, 2))) / dist_per_lat_degree
+        longitude_move: float = (math.sqrt(math.pow(distance, 2) - math.pow(math.sin(radian) * distance, 2))) / dist_per_lon_degree
+        latitude_move: float = (math.sqrt(math.pow(distance, 2) - math.pow(math.cos(radian) * distance, 2))) / dist_per_lat_degree
 
         latitude: float = 0.0
         longitude: float = 0.0
@@ -341,8 +310,7 @@ class PositionConverter():
         x2: float = lon2 * PI / 180
 
         y: float = math.sin(x2 - x1) * math.cos(y2)
-        x: float = math.cos(y1) * math.sin(y2) - \
-            math.sin(y1) * math.cos(y2) * math.cos(x2 - x1)
+        x: float = math.cos(y1) * math.sin(y2) - math.sin(y1) * math.cos(y2) * math.cos(x2 - x1)
 
         theta: float = math.atan2(y, x)
         angle: float = PI / 2 - theta
@@ -355,8 +323,7 @@ class PositionConverter():
         radius: float = 6371.0
 
         theta = lon1 - lon2
-        dist = math.sin(self.__deg2rad(lat1)) * math.sin(self.__deg2rad(lat2)) + math.cos(self.__deg2rad(lat1)) * \
-            math.cos(self.__deg2rad(lat2)) * math.cos(self.__deg2rad(theta))
+        dist = math.sin(self.__deg2rad(lat1)) * math.sin(self.__deg2rad(lat2)) + math.cos(self.__deg2rad(lat1)) * math.cos(self.__deg2rad(lat2)) * math.cos(self.__deg2rad(theta))
 
         dist = radius * math.acos(dist)
 
@@ -382,8 +349,7 @@ class PositionConverter():
         sin_delta_lat: float = math.sin(delta_latitude / 2)
         sin_delta_lon: float = math.sin(delta_longitude / 2)
 
-        square_root: float = math.sqrt(sin_delta_lat * sin_delta_lat + \
-            math.cos(self.__deg2rad(lat1)) * math.cos(self.__deg2rad(lat2) * sin_delta_lon * sin_delta_lon))
+        square_root: float = math.sqrt(sin_delta_lat * sin_delta_lat + math.cos(self.__deg2rad(lat1)) * math.cos(self.__deg2rad(lat2) * sin_delta_lon * sin_delta_lon))
 
         distance = 2 * radius * math.asin(square_root)
 

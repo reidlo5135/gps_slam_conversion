@@ -64,13 +64,11 @@ class ConverterNode(Node):
         super().__init__(NODE_NAME)
         self.get_logger().info(f'{NODE_NAME} has been executed...')
 
-        self.__position_converter: PositionConverter = PositionConverter(
-            node=self)
+        self.__position_converter: PositionConverter = PositionConverter(node=self)
         self.__position_test()
 
         self.__declare_parameters()
-        self.get_logger().info(
-            '====================================================================================')
+        self.get_logger().info('====================================================================================')
 
         self.__slam_map_resoultion_ratio: float = 0.0
         self.__initialize_mapping_map()
@@ -131,7 +129,7 @@ class ConverterNode(Node):
             PARAM_STD_POINT_SLAM_Y2: DEFAULT_INT,
             PARAM_SLAM_MAP_WIDTH: DEFAULT_INT,
             PARAM_SLAM_MAP_HEIGHT: DEFAULT_INT,
-            PARAM_SLAM_MAP_SHIFT: DEFAULT_FLOAT,
+            PARAM_SLAM_MAP_SHIFT: DEFAULT_INT,
             PARAM_SLAM_MAP_RESOULTION: DEFAULT_FLOAT,
             PARAM_STD_POINT_LON1: DEFAULT_FLOAT,
             PARAM_STD_POINT_LAT1: DEFAULT_FLOAT,
@@ -144,103 +142,75 @@ class ConverterNode(Node):
         }
 
         for key, value in parameters_dict.items():
-            self.get_logger().info(
-                f'{CONVERTER_NODE} Declaring key : [{key}], value : [{value}]')
+            self.get_logger().info(f'{CONVERTER_NODE} Declaring key : [{key}], value : [{value}]')
             self.declare_parameter(name=key, value=value)
 
     def __initialize_mapping_map(self) -> None:
-        map_shift: int = int(self.get_parameter(PARAM_SLAM_MAP_SHIFT).value)
+        map_shift: int = self.get_parameter(PARAM_SLAM_MAP_SHIFT).get_parameter_value().integer_value
 
-        std_point_slam_x1: int = int(
-            self.get_parameter(PARAM_STD_POINT_SLAM_X1).value)
-        std_point_slam_y1: int = int(
-            self.get_parameter(PARAM_STD_POINT_SLAM_Y1).value)
-        self.get_logger().info(
-            f'{CONVERTER_NODE} std_points_slam\n\tx1 : [{std_point_slam_x1}]\n\ty1 : [{std_point_slam_y1}]')
+        std_point_slam_x1: int = self.get_parameter(PARAM_STD_POINT_SLAM_X1).get_parameter_value().integer_value
+        std_point_slam_y1: int = self.get_parameter(PARAM_STD_POINT_SLAM_Y1).get_parameter_value().integer_value
+        self.get_logger().info(f'{CONVERTER_NODE} std_points_slam\n\tx1 : [{std_point_slam_x1}]\n\ty1 : [{std_point_slam_y1}]')
 
-        std_point_slam_x2: int = int(
-            self.get_parameter(PARAM_STD_POINT_SLAM_X2).value)
-        std_point_slam_y2: int = int(
-            self.get_parameter(PARAM_STD_POINT_SLAM_Y2).value)
-        self.get_logger().info(
-            f'{CONVERTER_NODE} std_points_slam\n\tx2 : [{std_point_slam_x2}]\n\ty2 : [{std_point_slam_y2}]')
+        std_point_slam_x2: int = self.get_parameter(PARAM_STD_POINT_SLAM_X2).get_parameter_value().integer_value
+        std_point_slam_y2: int = self.get_parameter(PARAM_STD_POINT_SLAM_Y2).get_parameter_value().integer_value
+        self.get_logger().info(f'{CONVERTER_NODE} std_points_slam\n\tx2 : [{std_point_slam_x2}]\n\ty2 : [{std_point_slam_y2}]')
 
-        slam_map_width: int = int(
-            self.get_parameter(PARAM_SLAM_MAP_WIDTH).value)
-        slam_map_height: int = int(
-            self.get_parameter(PARAM_SLAM_MAP_HEIGHT).value)
-        slam_map_resoultion: float = float(
-            self.get_parameter(PARAM_SLAM_MAP_RESOULTION).value)
-        self.get_logger().info(
-            f'{CONVERTER_NODE} slam_map info\n\twidth : [{slam_map_width}]\n\theight : [{slam_map_height}]\n\tresoultion : [{slam_map_resoultion}]')
+        slam_map_width: int = self.get_parameter(PARAM_SLAM_MAP_WIDTH).get_parameter_value().integer_value
+        slam_map_height: int = self.get_parameter(PARAM_SLAM_MAP_HEIGHT).get_parameter_value().integer_value
+        slam_map_resoultion: float = self.get_parameter(PARAM_SLAM_MAP_RESOULTION).get_parameter_value().double_value
+        self.get_logger().info(f'{CONVERTER_NODE} slam_map info\n\twidth : [{slam_map_width}]\n\theight : [{slam_map_height}]\n\tresoultion : [{slam_map_resoultion}]')
         
-        self.__slam_map_resoultion_ratio = SLAM_MAP_DISTANCE / slam_map_resoultion
-        self.get_logger().info(
-            f'{CONVERTER_NODE} slam_map info slam_map_resoultion_ratio : [{self.__slam_map_resoultion_ratio}]')
+        self.__slam_map_resoultion_ratio = (SLAM_MAP_DISTANCE / slam_map_resoultion)
+        self.get_logger().info(f'{CONVERTER_NODE} slam_map info slam_map_resoultion_ratio : [{self.__slam_map_resoultion_ratio}]')
 
-        std_point_lon1: float = float(
-            self.get_parameter(PARAM_STD_POINT_LON1).value)
-        std_point_lat1: float = float(
-            self.get_parameter(PARAM_STD_POINT_LAT1).value)
-        self.get_logger().info(
-            f'{CONVERTER_NODE} std_point\n\tlon1 : [{std_point_lon1}]\n\tlat1 : [{std_point_lat1}]')
+        std_point_lon1: float = self.get_parameter(PARAM_STD_POINT_LON1).get_parameter_value().double_value
+        std_point_lat1: float = self.get_parameter(PARAM_STD_POINT_LAT1).get_parameter_value().double_value
+        self.get_logger().info(f'{CONVERTER_NODE} std_point\n\tlon1 : [{std_point_lon1}]\n\tlat1 : [{std_point_lat1}]')
 
-        std_point_lon2: float = float(
-            self.get_parameter(PARAM_STD_POINT_LON2).value)
-        std_point_lat2: float = float(
-            self.get_parameter(PARAM_STD_POINT_LAT2).value)
-        self.get_logger().info(
-            f'{CONVERTER_NODE} std_point\n\tlon2 : [{std_point_lon2}]\n\tlat2 : [{std_point_lat2}]')
+        std_point_lon2: float = self.get_parameter(PARAM_STD_POINT_LON2).get_parameter_value().double_value
+        std_point_lat2: float = self.get_parameter(PARAM_STD_POINT_LAT2).get_parameter_value().double_value
+        self.get_logger().info(f'{CONVERTER_NODE} std_point\n\tlon2 : [{std_point_lon2}]\n\tlat2 : [{std_point_lat2}]')
 
-        start_point_lon: float = float(
-            self.get_parameter(PARAM_START_POINT_LON).value)
-        start_point_lat: float = float(
-            self.get_parameter(PARAM_START_POINT_LAT).value)
-        self.get_logger().info(
-            f'{CONVERTER_NODE} start_point\n\tlon2 : [{start_point_lon}]\n\tlat2 : [{start_point_lat}]')
+        start_point_lon: float = self.get_parameter(PARAM_START_POINT_LON).get_parameter_value().double_value
+        start_point_lat: float = self.get_parameter(PARAM_START_POINT_LAT).get_parameter_value().double_value
+        self.get_logger().info(f'{CONVERTER_NODE} start_point\n\tlon2 : [{start_point_lon}]\n\tlat2 : [{start_point_lat}]')
 
-        end_point_lon: float = float(
-            self.get_parameter(PARAM_END_POINT_LON).value)
-        end_point_lat: float = float(
-            self.get_parameter(PARAM_END_POINT_LAT).value)
-        self.get_logger().info(
-            f'{CONVERTER_NODE} end_point\n\tlon2 : [{end_point_lon}]\n\tlat2 : [{end_point_lat}]')
+        end_point_lon: float = self.get_parameter(PARAM_END_POINT_LON).get_parameter_value().double_value
+        end_point_lat: float = self.get_parameter(PARAM_END_POINT_LAT).get_parameter_value().double_value
+        self.get_logger().info(f'{CONVERTER_NODE} end_point\n\tlon2 : [{end_point_lon}]\n\tlat2 : [{end_point_lat}]')
 
         self.__position_converter.initialize(
-            x1=(std_point_slam_x1 - map_shift), y1=std_point_slam_y1,
-            x2=(std_point_slam_x2 - map_shift), y2=std_point_slam_y2,
-            slam_width=(slam_map_width - map_shift), slam_height=slam_map_height,
+            x1=(std_point_slam_x1 - map_shift),
+            y1=std_point_slam_y1,
+            x2=(std_point_slam_x2 - map_shift),
+            y2=std_point_slam_y2,
+            slam_width=(slam_map_width - map_shift),
+            slam_height=slam_map_height,
             map_point_1=PositionPoint(std_point_lon1, std_point_lat1),
             map_point_2=PositionPoint(std_point_lon2, std_point_lat2),
-            start_lon_lat=PositionPoint(
-                start_point_lon, start_point_lat),
-            end_lon_lat=PositionPoint(
-                end_point_lon, end_point_lat)
+            start_lon_lat=PositionPoint(start_point_lon, start_point_lat),
+            end_lon_lat=PositionPoint(end_point_lon, end_point_lat)
         )
 
     def __robot_pose_subscription_cb(self, robot_pose_cb: Pose) -> None:
         pose_x: float = robot_pose_cb.position.x
         pose_y: float = robot_pose_cb.position.y
 
-        position_point: PositionPoint = self.__position_converter.convert_slam_to_gps(
-            x=int(pose_x), y=int(pose_y)
-        )
+        position_point: PositionPoint = self.__position_converter.convert_slam_to_gps(x=int(pose_x), y=int(pose_y))
 
         if position_point != None:
             nav_sat_fix: NavSatFix = self.__build_nav_sat_fix(position_point=position_point)
             self.__slam_to_gps_publisher.publish(nav_sat_fix)
         else:
-            self.get_logger().error(
-                f'{CONVERTER_NODE} robot_pose_cb position_point is None... aborting')
+            self.get_logger().error(f'{CONVERTER_NODE} robot_pose_cb position_point is None... aborting')
             return
 
     def __ublox_fix_subscription_cb(self, ublox_fix_cb: NavSatFix) -> None:
         lon: float = ublox_fix_cb.longitude
         lat: float = ublox_fix_cb.latitude
 
-        converted_position_point: PositionPoint = self.__position_converter.convert_gps_to_slam(
-            longitude=lon, latitude=lat
-        )
+        converted_position_point: PositionPoint = self.__position_converter.convert_gps_to_slam(longitude=lon, latitude=lat)
 
         if converted_position_point != None:
             position_point: PositionPoint = PositionPoint(x=round(converted_position_point.x * 100) / 100.0, y=round(converted_position_point.y * 100) / 100.0)
@@ -248,8 +218,7 @@ class ConverterNode(Node):
             pose: Pose = self.__build_pose(position_point=position_point)
             self.__gps_to_slam_publisher.publish(pose)
         else:
-            self.get_logger().error(
-                f'{CONVERTER_NODE} ublox_fix_cb position_point is None... aborting')
+            self.get_logger().error(f'{CONVERTER_NODE} ublox_fix_cb position_point is None... aborting')
             return
 
     def __gps_slam_conversion_service_cb(self, request: Conversion.Request, response: Conversion.Response) -> Conversion.Response:
@@ -287,9 +256,7 @@ class ConverterNode(Node):
                 lat: float = gps_request.latitude
                 self.get_logger().info(f'{CONVERTER_NODE} gps_request_list\n\tlon : [{lon}]\n\tlat : [{lat}]]')
                 
-                slam_pose_position_point: PositionPoint = self.__position_converter.convert_gps_to_slam(
-                    longitude=lon, latitude=lat
-                )
+                slam_pose_position_point: PositionPoint = self.__position_converter.convert_gps_to_slam(longitude=lon, latitude=lat)
                 
                 pose: Pose = self.__build_pose(position_point=slam_pose_position_point)
                 slam_pose_response_list.append(pose)
@@ -328,9 +295,7 @@ class ConverterNode(Node):
                 pose_y: float = slam_pose_request.position.y
                 self.get_logger().info(f'{CONVERTER_NODE} slam_pose_request_list\n\tx : [{pose_x}]\n\ty : [{pose_y}]]')
                 
-                gps_position_point: PositionPoint = self.__position_converter.convert_slam_to_gps(
-                    x=pose_x, y=pose_y
-                )
+                gps_position_point: PositionPoint = self.__position_converter.convert_slam_to_gps(x=pose_x, y=pose_y)
                 
                 nav_sat_fix: NavSatFix = self.__build_nav_sat_fix(position_point=gps_position_point)
                 gps_response_list.append(nav_sat_fix)
