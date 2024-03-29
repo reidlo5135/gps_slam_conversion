@@ -273,6 +273,7 @@ class ConverterNode(Node):
                     self.get_logger().info(f'{CONVERTER_NODE} slam_pose_response_list\n\tx : [{slam_pose_x}]\n\ty : [{slam_pose_y}]]')
                 
                 response.slam_pose_response_list = slam_pose_response_list
+                self.get_logger().info(f'{CONVERTER_NODE} slam_pose_response_list : {response.slam_pose_response_list}')
                 
                 return response
         elif (conversion_target_data == CONVERSION_TARGET_GPS):

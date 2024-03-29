@@ -1,11 +1,11 @@
 /gps_slam_converter:
   ros__parameters:
-    std_point_slam_x1: 415
-    std_point_slam_y1: 235
-    std_point_slam_x2: 1210
-    std_point_slam_y2: 541
-    slam_map_width: 1238
-    slam_map_height: 765
+    std_point_slam_x1: 313
+    std_point_slam_y1: 528
+    std_point_slam_x2: 1630
+    std_point_slam_y2: 1017
+    slam_map_width: 2377
+    slam_map_height: 1258
     slam_map_shift: 0
     slam_map_resolution: 0.05
     std_point_lon1: 128.8579836
