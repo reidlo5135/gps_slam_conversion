@@ -1,0 +1,19 @@
+/gps_slam_converter:
+  ros__parameters:
+    std_point_slam_x1: 137
+    std_point_slam_y1: 193
+    std_point_slam_x2: 671
+    std_point_slam_y2: 541
+    slam_map_width: 1122
+    slam_map_height: 666
+    slam_map_shift: 0
+    slam_map_resolution: 0.1
+    std_point_lon1: 128.85798356757832
+    std_point_lat1: 35.1576297715377
+    std_point_lon2: 128.85816409364477
+    std_point_lat2: 35.15818851572573
+    start_point_lon: 128.858009083
+    start_point_lat: 35.157430158
+    end_point_lon: 128.858870603
+    end_point_lat: 35.158056682
+  
