@@ -270,25 +270,6 @@ class ConverterNode(Node):
                 for p_r in response.slam_pose_response_list:
                     p_r.position.x = p_r.position.x / self.__slam_map_resoultion_ratio;
                     p_r.position.y = p_r.position.y / self.__slam_map_resoultion_ratio;
-                    
-                    self.get_logger().info(f"{CONVERTER_NODE} slam_pose_response_list\n\tx : [{p_r.position.x}]\n\ty : [{p_r.position.y }]]");
-                    if p_r.position.x - 13.879165027930673 < 0.001 and p_r.position.y - 19.21090258492469 < 0.001:
-                        self.get_logger().info(f"{CONVERTER_NODE} ============= CNC Shift =============");
-                        p_r.position.y = p_r.position.y - 0.4;
-                    # if p_r.position.x - 13.759427820577594 < 0.00001 and p_r.position.y - 18.927180 < 0.00001:
-                    #     self.get_logger().info(f"{CONVERTER_NODE} ============= CNC Shift =============");
-                    #     p_r.position.y = p_r.position.y - 0.3;
-                    # elif p_r.position.x < 58.344817759589695 and p_r.position.y - 18.9508628646264 < 0.1:
-                    #     if p_r.position.x - 22.21496785246659 < 0.01:
-                    #         self.get_logger().info(f"{CONVERTER_NODE} ============= Straight Shift =============");
-                    #         p_r.position.y = p_r.position.y;
-                    # elif p_r.position.x - 66.918340 < 0.00001 and p_r.position.y - 54.176985 < 0.00001:
-                    #     self.get_logger().info(f"{CONVERTER_NODE} ============= TRANSFER Shift =============");
-                    #     p_r.position.y = p_r.position.y - 0.2;
-                    # else:
-                    #     pass;
-                    
-                self.get_logger().info(f"{CONVERTER_NODE} slam_pose_response_list shifted\n\tx : [{p_r.position.x}]\n\ty : [{p_r.position.y }]]");
                 
                 return response;
         elif (conversion_target_data == CONVERSION_TARGET_GPS):
